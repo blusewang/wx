@@ -14,19 +14,19 @@ import (
 )
 
 type Mp struct {
-	AppId string
-	AppName string
-	AccessToken string
-	Expire time.Time
-	AppSecret string
-	PrivateToken string
+	AppId          string
+	AppName        string
+	AccessToken    string
+	Expire         time.Time
+	AppSecret      string
+	PrivateToken   string
 	EncodingAESKey string
 }
 
 // 获取access_token
 type accessTokenRes struct {
 	AccessToken string `json:"access_token"`
-	ExpiresIn int64 `json:"expires_in"`
+	ExpiresIn   int64  `json:"expires_in"`
 }
 func (m Mp) AuthToken() (rs accessTokenRes,err error) {
 	api := fmt.Sprintf("https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=%v&secret=%v",m.AppId,m.AppSecret)
@@ -38,11 +38,11 @@ func (m Mp) AuthToken() (rs accessTokenRes,err error) {
 
 // App 通过code获取access_token
 type appAuthToken struct {
-	AccessToken string `json:"access_token"`
-	ExpiresIn int64 `json:"expires_in"`
+	AccessToken  string `json:"access_token"`
+	ExpiresIn    int64  `json:"expires_in"`
 	RefreshToken string `json:"refresh_token"`
-	OpenId string `json:"openid"`
-	Scope string `json:"scope"`
+	OpenId       string `json:"openid"`
+	Scope        string `json:"scope"`
 }
 func (m Mp) AppAuthToken(code string) (rs appAuthToken,err error) {
 	api := fmt.Sprintf("https://api.weixin.qq.com/sns/oauth2/access_token?appid=%v&secret=%v&code=%v" +
@@ -55,20 +55,20 @@ func (m Mp) AppAuthToken(code string) (rs appAuthToken,err error) {
 
 // App 获取用户个人信息（UnionID机制）
 type UserInfo struct {
-	OpenId string `json:"openid"`
-	NickName string `json:"nickname"`
-	Sex int64 `json:"sex"`
-	Province string `json:"province"`
-	City string `json:"city"`
-	Country string `json:"country"`
-	HeadImgUrl string `json:"headimgurl"`
-	UnionId string `json:"unionid"`
-	Subscribe int64 `json:"subscribe"`
-	SubscribeTime int64 `json:"subscribe_time"`
-	Remark string `json:"remark"`
-	TagIdList []int64 `json:"tagid_list"`
-	QrScene int64 `json:"qr_scene"`
-	QrSceneStr string `json:"qr_scene_str"`
+	OpenId        string  `json:"openid"`
+	NickName      string  `json:"nickname"`
+	Sex           int64   `json:"sex"`
+	Province      string  `json:"province"`
+	City          string  `json:"city"`
+	Country       string  `json:"country"`
+	HeadImgUrl    string  `json:"headimgurl"`
+	UnionId       string  `json:"unionid"`
+	Subscribe     int64   `json:"subscribe"`
+	SubscribeTime int64   `json:"subscribe_time"`
+	Remark        string  `json:"remark"`
+	TagIdList     []int64 `json:"tagid_list"`
+	QrScene       int64   `json:"qr_scene"`
+	QrSceneStr    string  `json:"qr_scene_str"`
 }
 func (m Mp) AppUserInfo(openId string) (rs UserInfo, err error){
 	api := fmt.Sprintf("https://api.weixin.qq.com/sns/userinfo?access_token=%v&openid=%v&lang=zh_CN",m.AccessToken,openId)
@@ -80,18 +80,18 @@ func (m Mp) AppUserInfo(openId string) (rs UserInfo, err error){
 
 // 生成临时二维码
 type shortQrCodeReq struct {
-	ExpireSeconds int `json:"expire_seconds"`
-	ActionName string `json:"action_name"`
-	ActionInfo struct{
-		Scene struct{
+	ExpireSeconds int    `json:"expire_seconds"`
+	ActionName    string `json:"action_name"`
+	ActionInfo    struct {
+		Scene struct {
 			SceneId int `json:"scene_id"`
 		} `json:"scene"`
 	} `json:"action_info"`
 }
 type shortQrCode struct {
-	Ticket string `json:"ticket"`
-	ExpireSeconds int `json:"expire_seconds"`
-	Url string `json:"url"`
+	Ticket        string `json:"ticket"`
+	ExpireSeconds int    `json:"expire_seconds"`
+	Url           string `json:"url"`
 }
 func (m Mp) CreateShortQrCode(sceneId, secondsOut int) (rs shortQrCode,err error){
 	var req shortQrCodeReq
@@ -174,7 +174,7 @@ func (m Mp) SendTpsMsg(openid, tplId, path string,content interface{}) (rs tpsMs
 // 根据OpenID列表群发
 type massSendRes struct {
 	wxErr
-	MsgId int64 `json:"msg_id"`
+	MsgId     int64 `json:"msg_id"`
 	MsgDataId int64 `json:"msg_data_id"`
 }
 func (m Mp) MassSend(openIds []string, msgType string, content interface{}) (rs massSendRes,err error) {
@@ -193,9 +193,9 @@ func (m Mp) MassSend(openIds []string, msgType string, content interface{}) (rs 
 // 小程序 登录凭证校验
 type mpCode2SessionRes struct {
 	wxErr
-	OpenId string `json:"openid"`
+	OpenId     string `json:"openid"`
 	SessionKey string `json:"session_key"`
-	UnionId string `json:"unionid"`
+	UnionId    string `json:"unionid"`
 }
 func (m Mp) MpCode2Session(code string) (rs mpCode2SessionRes,err error){
 	api := fmt.Sprintf("https://api.weixin.qq.com/sns/jscode2session?appid=%v&secret=%v&js_code=%v" +
