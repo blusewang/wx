@@ -25,8 +25,13 @@ func (m mchErr) IsBankPayUnCertain() bool {
 	return m.ErrCode == "SYSTEMERROR"
 }
 
-func parseJsonErr(raw []byte) (err error) {
-	var e wxErr
+func (m mchErr) Error() string {
+	if m.ErrCodeDes != "" { return m.ErrCodeDes } else
+	if m.ReturnMsg != "" { return m.ReturnMsg } else
+	{ return "" }
+}
+
+func parseJsonErr(raw []byte) (e wxErr,err error) {
 	err = json.Unmarshal(raw,&e)
 	if err != nil {return}
 	if e.ErrCode > 0 {err = fmt.Errorf("微信提示: %v",e.ErrMsg)}

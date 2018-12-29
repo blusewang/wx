@@ -28,11 +28,6 @@ import (
 
 type H map[string]interface{}
 
-func parseJson(raw []byte,any interface{}) (err error){
-	err = json.Unmarshal(raw,&any)
-	if err != nil { return } else { err = parseJsonErr(raw)}
-	return
-}
 
 func parseXml(raw []byte,any interface{}) (err error){
 	err = xml.Unmarshal(raw,&any)

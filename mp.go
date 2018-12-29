@@ -2,6 +2,7 @@ package wxApi
 
 import (
 	"crypto/sha1"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -32,7 +33,8 @@ func (m Mp) AuthToken() (rs accessTokenRes,err error) {
 	api := fmt.Sprintf("https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=%v&secret=%v",m.AppId,m.AppSecret)
 	raw,err := get(api)
 	if err != nil { return }
-	err = parseJson(raw,&rs)
+	err = m.parse(raw,&rs)
+	if err != nil {log.Println("GET",api,string(raw))}
 	return
 }
 
@@ -49,7 +51,8 @@ func (m Mp) AppAuthToken(code string) (rs appAuthToken,err error) {
 		"&grant_type=authorization_code",m.AppId,m.AppSecret,code)
 	raw,err := get(api)
 	if err != nil { return }
-	err = parseJson(raw,&rs)
+	err = m.parse(raw,&rs)
+	if err != nil {log.Println("GET",api,string(raw))}
 	return
 }
 
@@ -74,7 +77,8 @@ func (m Mp) AppUserInfo(openId string) (rs UserInfo, err error){
 	api := fmt.Sprintf("https://api.weixin.qq.com/sns/userinfo?access_token=%v&openid=%v&lang=zh_CN",m.AccessToken,openId)
 	raw,err := get(api)
 	if err != nil {return}
-	err = parseJson(raw,&rs)
+	err = m.parse(raw,&rs)
+	if err != nil {log.Println("GET",api,string(raw))}
 	return
 }
 
@@ -100,7 +104,8 @@ func (m Mp) CreateShortQrCode(sceneId, secondsOut int) (rs shortQrCode,err error
 	req.ActionInfo.Scene.SceneId = sceneId
 	api := fmt.Sprintf("https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token=%v",m.AccessToken)
 	raw,err := postJSON(api,req)
-	err = parseJson(raw,&rs)
+	err = m.parse(raw,&rs)
+	if err != nil {log.Println("POST",api,req,string(raw))}
 	return
 }
 
@@ -121,7 +126,8 @@ func (m Mp) UserInfo(openId string) (rs UserInfo,err error) {
 		m.AccessToken,openId)
 	raw,err := get(api)
 	if err != nil {return}
-	err = parseJson(raw,&rs)
+	err = m.parse(raw,&rs)
+	if err != nil {log.Println("GET",api,string(raw))}
 	return
 }
 
@@ -145,7 +151,7 @@ func (m Mp) SendMsg(openid, msgType string,content interface{}) (err error) {
 	}
 	raw,err := postJSON(api,data)
 	if err != nil {return}
-	err = parseJson(raw,err)
+	err = m.parse(raw,err)
 	return
 }
 
@@ -167,7 +173,8 @@ func (m Mp) SendTpsMsg(openid, tplId, path string,content interface{}) (rs tpsMs
 	data["data"] = content
 	raw,err := postJSON(api,data)
 	if err != nil {return}
-	err = parseJson(raw,&rs)
+	err = m.parse(raw,&rs)
+	if err != nil {log.Println("POST",api,data,string(raw))}
 	return
 }
 
@@ -186,7 +193,8 @@ func (m Mp) MassSend(openIds []string, msgType string, content interface{}) (rs 
 		post["text"] = H{"content":content}
 	}
 	raw,err := postJSON(api,post)
-	err = parseJson(raw,&rs)
+	err = m.parse(raw,&rs)
+	if err != nil {log.Println("POST",api,post,string(raw))}
 	return
 }
 
@@ -202,7 +210,8 @@ func (m Mp) MpCode2Session(code string) (rs mpCode2SessionRes,err error){
 		"&grant_type=authorization_code",m.AppId,m.AppSecret,code)
 	raw,err := get(api)
 	if err != nil {return}
-	err = parseJson(raw,&rs)
+	err = m.parse(raw,&rs)
+	if err != nil {log.Println("GET",api,string(raw))}
 	return
 }
 
@@ -216,8 +225,6 @@ func (m Mp) HandleMsg(msg io.ReadCloser, handler interface{}) (err error) {
 	data := XmlToMap(string(raw),true)
 
 	// 按需解密
-	log.Println(data)
-
 	encrypt,_ := data["Encrypt"].(string)
 	_,raw,err = decryptMsg(m.AppId,encrypt,m.EncodingAESKey)
 	if err != nil { return err }
@@ -250,6 +257,15 @@ func (m Mp) HandleMsg(msg io.ReadCloser, handler interface{}) (err error) {
 
 
 
+// 公众号消息与事件的分发
+func (m *Mp) parse(raw []byte,any interface{}) (err error){
+	err = json.Unmarshal(raw,&any)
+	if err != nil { return } else {
+		we,err := parseJsonErr(raw)
+		if we.ErrCode == 40001 { m.Expire = time.Now()}
+		return err
+	}
+}
 
 
 

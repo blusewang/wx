@@ -178,6 +178,10 @@ type BankRSARes struct {
 	MchId      int64  `xml:"mch_id"`
 	PubKey     string `xml:"pub_key"`
 }
+func (bp BankRSARes) String() string {
+	raw,_ := json.Marshal(bp)
+	return string(raw)
+}
 func (m Mch) GetBankRSAPublicKey() (rs BankRSARes,err error){
 	err = m.prepareCert()
 	if err != nil {return}
