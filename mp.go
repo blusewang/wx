@@ -60,7 +60,7 @@ func (m Mp) AppAuthToken(code string) (rs appAuthToken,err error) {
 type UserInfo struct {
 	OpenId        string  `json:"openid"`
 	NickName      string  `json:"nickname"`
-	Sex           int64   `json:"sex"`
+	Sex           int16   `json:"sex"`
 	Province      string  `json:"province"`
 	City          string  `json:"city"`
 	Country       string  `json:"country"`
@@ -72,6 +72,10 @@ type UserInfo struct {
 	TagIdList     []int64 `json:"tagid_list"`
 	QrScene       int64   `json:"qr_scene"`
 	QrSceneStr    string  `json:"qr_scene_str"`
+}
+func (ui UserInfo) String() string {
+	raw,_ :=json.Marshal(ui)
+	return string(raw)
 }
 func (m Mp) AppUserInfo(openId string) (rs UserInfo, err error){
 	api := fmt.Sprintf("https://api.weixin.qq.com/sns/userinfo?access_token=%v&openid=%v&lang=zh_CN",m.AccessToken,openId)
@@ -262,7 +266,7 @@ func (m *Mp) parse(raw []byte,any interface{}) (err error){
 	err = json.Unmarshal(raw,&any)
 	if err != nil { return } else {
 		we,err := parseJsonErr(raw)
-		if we.ErrCode == 40001 { m.Expire = time.Now()}
+		if we.ErrCode == 40001 || we.ErrCode == 42001 { m.Expire = time.Now()}
 		return err
 	}
 }
