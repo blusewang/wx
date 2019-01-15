@@ -32,12 +32,13 @@ type OrderReq struct {
 	NonceStr       string   `xml:"nonce_str"`
 	Body           string   `xml:"body"`
 	OutTradeNo     string   `xml:"out_trade_no"`
-	TotalFee       int      `xml:"total_fee"`
+	TotalFee       int64    `xml:"total_fee"`
 	SpbillCreateIp string   `xml:"spbill_create_ip"`
 	NotifyUrl      string   `xml:"notify_url"`
 	TradeType      string   `xml:"trade_type"`
 	Sign           string   `xml:"sign"`
 }
+
 type orderRes struct {
 	mchErr
 	AppId     string `xml:"appid"`
@@ -116,15 +117,20 @@ type BankPayReq struct {
 	EncBankNo      string   `xml:"enc_bank_no"`
 	EncTrueName    string   `xml:"enc_true_name"`
 	BankCode       string   `xml:"bank_code"`
-	Amount         int      `xml:"amount"`
+	AmountFen      int64    `xml:"amount"`
 	Desc           string   `xml:"desc"`
 	Sign           string   `xml:"sign"`
+}
+
+func (bpr BankPayReq) String() string {
+	raw, _ := json.Marshal(bpr)
+	return string(raw)
 }
 
 type BankPayRes struct {
 	mchErr
 	PartnerTradeNo string `xml:"partner_trade_no"`
-	Amount         int64  `xml:"amount"`
+	AmountFen      int64  `xml:"amount"`
 	PaymentNo      string `xml:"payment_no"`
 	CMmsAmt        int64  `xml:"cmms_amt"`
 }
@@ -165,9 +171,9 @@ type BankQueryRes struct {
 	mchErr
 	PartnerTradeNo string `xml:"partner_trade_no"`
 	PaymentNo      string `xml:"payment_no"`
-	Amount         int64  `xml:"amount"`
+	AmountFen      int64  `xml:"amount"`
 	Status         string `xml:"status"`
-	CMmsAmt        int64  `xml:"cmms_amt"`
+	CMmsAmtFen     int64  `xml:"cmms_amt"`
 	CreateTime     string `xml:"create_time"`
 	PaySuccessTime string `xml:"pay_succ_time"`
 	Reason         string `xml:"reason"`
