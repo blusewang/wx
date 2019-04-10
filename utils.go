@@ -24,92 +24,100 @@ import (
 	"time"
 )
 
-
-
 type H map[string]interface{}
 
-
-func parseXml(raw []byte,any interface{}) (err error){
-	err = xml.Unmarshal(raw,&any)
+func parseXml(raw []byte, any interface{}) (err error) {
+	err = xml.Unmarshal(raw, &any)
 	return
 }
 
-func get(api string) (raw []byte,err error) {
-	resp,err := http.Get(api)
-	if err != nil { return }
+func get(api string) (raw []byte, err error) {
+	resp, err := http.Get(api)
+	if err != nil {
+		return
+	}
 	defer resp.Body.Close()
-	raw,err = ioutil.ReadAll(resp.Body)
+	raw, err = ioutil.ReadAll(resp.Body)
 	//log.Println("API ===> GET",api,string(raw))
 	return
 }
 
-
-func postJSON(api string,postData interface{}) (raw []byte,err error) {
-	bin,err := json.Marshal(postData)
-	if err != nil { return }
-	req,err := http.NewRequest("POST",api,bytes.NewBuffer(bin))
-	if err != nil { return }
-	req.Header.Set("Content-Type","application/json")
+func postJSON(api string, postData interface{}) (raw []byte, err error) {
+	bin, err := json.Marshal(postData)
+	if err != nil {
+		return
+	}
+	req, err := http.NewRequest("POST", api, bytes.NewBuffer(bin))
+	if err != nil {
+		return
+	}
+	req.Header.Set("Content-Type", "application/json")
 	client := &http.Client{}
-	resp,err := client.Do(req)
-	if err != nil { return }
+	resp, err := client.Do(req)
+	if err != nil {
+		return
+	}
 	defer resp.Body.Close()
-	raw,err = ioutil.ReadAll(resp.Body)
+	raw, err = ioutil.ReadAll(resp.Body)
 	//log.Println("API ===> POST",api,postData,string(raw))
 	return
 }
 
-func postRaw(api string,raw []byte) (bites []byte,err error) {
-	req,_ := http.NewRequest("POST",api,bytes.NewBuffer(raw))
+func postRaw(api string, raw []byte) (bites []byte, err error) {
+	req, _ := http.NewRequest("POST", api, bytes.NewBuffer(raw))
 	client := &http.Client{}
-	resp,err := client.Do(req)
-	if err != nil { return }
+	resp, err := client.Do(req)
+	if err != nil {
+		return
+	}
 	defer resp.Body.Close()
-	bites,err = ioutil.ReadAll(resp.Body)
+	bites, err = ioutil.ReadAll(resp.Body)
 	return
 }
 
-func getWithCert(cert tls.Certificate,api string) (raw []byte,err error){
+func getWithCert(cert tls.Certificate, api string) (raw []byte, err error) {
 	client := &http.Client{
-		Transport:&http.Transport{
-			TLSClientConfig:&tls.Config{
-				Certificates:[]tls.Certificate{cert},
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				Certificates: []tls.Certificate{cert},
 			},
-			DisableCompression:true,
+			DisableCompression: true,
 		},
 	}
-	req,err := http.NewRequest("GET",api,nil)
-	if err != nil {return}
-	resp,err := client.Do(req)
-	if err != nil {return}
+	req, err := http.NewRequest("GET", api, nil)
+	if err != nil {
+		return
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return
+	}
 	defer resp.Body.Close()
-	raw,err = ioutil.ReadAll(resp.Body)
+	raw, err = ioutil.ReadAll(resp.Body)
 	return
 }
 
-func postWithCert(cert tls.Certificate,api string,body []byte) (raw []byte,err error){
+func postWithCert(cert tls.Certificate, api string, body []byte) (raw []byte, err error) {
 	client := &http.Client{
-		Transport:&http.Transport{
-			TLSClientConfig:&tls.Config{
-				Certificates:[]tls.Certificate{cert},
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				Certificates: []tls.Certificate{cert},
 			},
-			DisableCompression:true,
+			DisableCompression: true,
 		},
 	}
-	req,err := http.NewRequest("POST",api,bytes.NewBuffer(body))
-	if err != nil {return}
-	resp,err := client.Do(req)
-	if err != nil {return}
+	req, err := http.NewRequest("POST", api, bytes.NewBuffer(body))
+	if err != nil {
+		return
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return
+	}
 	defer resp.Body.Close()
-	raw,err = ioutil.ReadAll(resp.Body)
+	raw, err = ioutil.ReadAll(resp.Body)
 	return
 }
-
-
-
-
-
-
 
 func XmlToMap(xmlStr string, isIgnoreFirst bool) map[string]interface{} {
 	m := make(map[string]interface{})
@@ -155,12 +163,12 @@ func mapSortByKey(data map[string]interface{}) string {
 	var keys []string
 	nData := ""
 	for k := range data {
-		keys = append(keys,k)
+		keys = append(keys, k)
 	}
 
 	sort.Strings(keys)
-	for _,k := range keys {
-		nData = fmt.Sprintf("%v&%v=%v",nData , k , data[k])
+	for _, k := range keys {
+		nData = fmt.Sprintf("%v&%v=%v", nData, k, data[k])
 	}
 	return nData[1:]
 }
@@ -169,9 +177,9 @@ func MapToXML(data map[string]interface{}) []byte {
 	xmlStr := "<xml>"
 	for k, v := range data {
 		if reflect.TypeOf(v).Name() == "string" {
-			xmlStr += fmt.Sprintf("<%v><![CDATA[%v]]></%v>",k,v,k)
-		}else{
-			xmlStr += fmt.Sprintf("<%v>%v</%v>",k,v,k)
+			xmlStr += fmt.Sprintf("<%v><![CDATA[%v]]></%v>", k, v, k)
+		} else {
+			xmlStr += fmt.Sprintf("<%v>%v</%v>", k, v, k)
 		}
 	}
 	xmlStr += "</xml>"
@@ -180,46 +188,53 @@ func MapToXML(data map[string]interface{}) []byte {
 
 var certs = make(map[string]*tls.Certificate)
 
-func parseCertificate(pemByte,keyByte []byte,password string) (cert *tls.Certificate,err error){
-	if certs[password] != nil {return certs[password],nil}
+func parseCertificate(pemByte, keyByte []byte, password string) (cert *tls.Certificate, err error) {
+	if certs[password] != nil {
+		return certs[password], nil
+	}
 
-	block,restPem := pem.Decode(pemByte)
-	if block == nil { err = errors.New("pem解析失败"); return }
+	block, restPem := pem.Decode(pemByte)
+	if block == nil {
+		err = errors.New("pem解析失败")
+		return
+	}
 
 	var c tls.Certificate
-	c.Certificate = append(c.Certificate,block.Bytes)
-	certDerBlockChain,_ := pem.Decode(restPem)
+	c.Certificate = append(c.Certificate, block.Bytes)
+	certDerBlockChain, _ := pem.Decode(restPem)
 	if certDerBlockChain != nil {
-		c.Certificate = append(c.Certificate,certDerBlockChain.Bytes)
+		c.Certificate = append(c.Certificate, certDerBlockChain.Bytes)
 	}
-
 	// 解码pem格式的私钥
 	var key interface{}
-	keyDer,_ := pem.Decode(keyByte)
+	keyDer, _ := pem.Decode(keyByte)
 	if keyDer.Type == "RSA PRIVATE KEY" {
-		key,err = x509.ParsePKCS1PrivateKey(keyDer.Bytes)
-	}else if keyDer.Type == "PRIVATE KEY" {
-		key,err = x509.ParsePKCS8PrivateKey(keyDer.Bytes)
+		key, err = x509.ParsePKCS1PrivateKey(keyDer.Bytes)
+	} else if keyDer.Type == "PRIVATE KEY" {
+		key, err = x509.ParsePKCS8PrivateKey(keyDer.Bytes)
 	}
-	if err != nil { return }
+	if err != nil {
+		return
+	}
 	c.PrivateKey = key
 	cert = &c
 	certs[password] = cert
 	return
 }
 
-
-func rsaEncrypt(rsaPubic []byte,plain string) (cipherText string,err error){
-	block,_ := pem.Decode(rsaPubic)
-	if err != nil {return}
-	publicKey,err := x509.ParsePKCS1PublicKey(block.Bytes)
-	if err != nil {return}
-	raw,err := rsa.EncryptOAEP(sha1.New(),rand2.Reader,publicKey,[]byte(plain),nil)
-	if err != nil {return}
+func rsaEncrypt(rsaPubic []byte, plain string) (cipherText string, err error) {
+	block, _ := pem.Decode(rsaPubic)
+	publicKey, err := x509.ParsePKCS1PublicKey(block.Bytes)
+	if err != nil {
+		return
+	}
+	raw, err := rsa.EncryptOAEP(sha1.New(), rand2.Reader, publicKey, []byte(plain), nil)
+	if err != nil {
+		return
+	}
 	cipherText = base64.StdEncoding.EncodeToString(raw)
 	return
 }
-
 
 //EncryptMsg 加密消息
 func encryptMsg(random, rawXMLMsg []byte, appID, aesKey string) (encryptMsg []byte, err error) {
