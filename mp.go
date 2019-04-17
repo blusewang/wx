@@ -108,6 +108,28 @@ func (m Mp) sha1Sign(data H) string {
 	return strings.ToUpper(fmt.Sprintf("%x", raw))
 }
 
+// 获取js sdk access_token
+type jsAccessToken struct {
+	AccessToken  string `json:"access_token"`
+	ExpiresIn    int64  `json:"expires_in"`
+	RefreshToken string `json:"refresh_token"`
+	Openid       string `json:"openid"`
+}
+
+func (m *Mp) JsCodeToken(code string) (rs jsAccessToken, err error) {
+	api := fmt.Sprintf("https://api.weixin.qq.com/sns/oauth2/access_token?appid=%v&secret=%v&code=%v&grant_type=authorization_code",
+		m.AppId, m.AppSecret, code)
+	raw, err := get(api)
+	if err != nil {
+		return
+	}
+	err = m.parse(raw, &rs)
+	if err != nil {
+		log.Println("GET", api, string(raw))
+	}
+	return
+}
+
 // App 获取用户个人信息（UnionID机制）
 type UserInfo struct {
 	OpenId        string  `json:"openid"`

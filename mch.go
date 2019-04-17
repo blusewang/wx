@@ -166,6 +166,59 @@ func (m Mch) BankPay(bpr BankPayReq) (rs BankPayRes, err error) {
 	return
 }
 
+// 发红包
+type RedPackReq struct {
+	XMLName     xml.Name `xml:"xml"`
+	NonceStr    string   `xml:"nonce_str"`
+	Sign        string   `xml:"sign"`
+	MchBillNo   string   `xml:"mch_billno"`
+	MchId       string   `xml:"mch_id"`
+	WxAppId     string   `xml:"wxappid"`
+	SendName    string   `xml:"send_name"`
+	ReOpenId    string   `xml:"re_openid"`
+	TotalAmount int      `xml:"total_amount"`
+	TotalNum    int      `xml:"total_num"`
+	Wishing     string   `xml:"wishing"`
+	ClientIp    string   `xml:"client_ip"`
+	ActName     string   `xml:"act_name"`
+	Remark      string   `xml:"remark"`
+}
+
+type RedPackSendRes struct {
+	mchErr
+	MchBillNo   string `xml:"mch_billno"`
+	MchId       string `xml:"mch_id"`
+	WxAppId     string `xml:"wxappid"`
+	ReOpenId    string `xml:"re_openid"`
+	TotalAmount int    `xml:"total_amount"`
+	SendListId  string `xml:"send_listid"`
+}
+
+func (res RedPackSendRes) String() string {
+	raw, _ := json.Marshal(res)
+	return string(raw)
+}
+func (m Mch) SendRedPack(req RedPackReq) (rs RedPackSendRes, err error) {
+	err = m.prepareCert()
+	if err != nil {
+		return
+	}
+	api := "https://api.mch.weixin.qq.com/mmpaymkttransfers/sendredpack"
+	req.MchId = m.MchId
+	req.NonceStr = NewRandStr(32)
+	req.Sign = m.sign(req)
+	raw, err := xml.Marshal(req)
+	if err != nil {
+		return
+	}
+	raw, err = postWithCert(*m.mchCert, api, raw)
+	if err != nil {
+		return
+	}
+	err = parseXml(raw, &rs)
+	return
+}
+
 // 用于对商户企业付款到银行卡操作进行结果查询
 type BankQueryRes struct {
 	mchErr
@@ -222,7 +275,7 @@ func (m Mch) GetBankRSAPublicKey() (rs BankRSARes, err error) {
 		return
 	}
 
-	data := make(map[string]interface{})
+	data := make(H)
 	data["mch_id"] = m.MchId
 	data["nonce_str"] = NewRandStr(32)
 	data["sign_type"] = "MD5"
