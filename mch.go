@@ -28,6 +28,7 @@ type OrderReq struct {
 	XMLName        xml.Name `xml:"xml"`
 	AppId          string   `xml:"appid"`
 	MchId          string   `xml:"mch_id"`
+	DeviceInfo     string   `xml:"device_info"`
 	OpenId         string   `xml:"openid"`
 	NonceStr       string   `xml:"nonce_str"`
 	Body           string   `xml:"body"`
@@ -36,10 +37,11 @@ type OrderReq struct {
 	SpbillCreateIp string   `xml:"spbill_create_ip"`
 	NotifyUrl      string   `xml:"notify_url"`
 	TradeType      string   `xml:"trade_type"`
+	Attach         string   `xml:"attach"`
 	Sign           string   `xml:"sign"`
 }
 
-type orderRes struct {
+type OrderRes struct {
 	mchErr
 	AppId     string `xml:"appid"`
 	MchId     string `xml:"mch_id"`
@@ -49,11 +51,37 @@ type orderRes struct {
 	PrepayId  string `xml:"prepay_id"`
 }
 
-func (or orderRes) String() string {
+func (or OrderRes) String() string {
 	raw, _ := json.Marshal(or)
 	return string(raw)
 }
-func (m Mch) Order(req OrderReq) (rs orderRes, err error) {
+
+type PayNotify struct {
+	mchErr
+	AppId              string `xml:"appid"`
+	MchId              string `xml:"mchid"`
+	DeviceInfo         string `xml:"device_info"`
+	NonceStr           string `xml:"nonce_str"`
+	Sign               string `xml:"sign"`
+	SignType           string `xml:"sign_type"`
+	OpenId             string `xml:"openid"`
+	IsSubscribe        string `xml:"is_subscribe"`
+	TradeType          string `xml:"trade_type"`
+	BankType           string `xml:"bank_type"`
+	TotalFee           int64  `xml:"total_fee"`
+	SettlementTotalFee int64  `xml:"settlement_total_fee"`
+	FeeType            string `xml:"fee_type"`
+	CashFee            int64  `xml:"cash_fee"`
+	CashFeeType        string `xml:"cash_fee_type"`
+	CouponFee          int64  `xml:"coupon_fee"`
+	CouponCount        int64  `xml:"coupon_count"`
+	TransactionId      string `xml:"transaction_id"`
+	OutTradeNo         string `xml:"out_trade_no"`
+	Attach             string `xml:"attach"`
+	TimeEnd            string `xml:"time_end"`
+}
+
+func (m Mch) Order(req OrderReq) (rs OrderRes, err error) {
 	api := "https://api.mch.weixin.qq.com/pay/unifiedorder"
 	req.Sign = m.sign(req)
 	raw, err := xml.Marshal(req)
@@ -69,7 +97,7 @@ func (m Mch) Order(req OrderReq) (rs orderRes, err error) {
 }
 
 // 将订单签名给App
-func (m Mch) OrderSign4App(or orderRes) H {
+func (m Mch) OrderSign4App(or OrderRes) H {
 	data := make(H)
 	data["appid"] = or.AppId
 	data["partnerid"] = or.MchId
@@ -83,7 +111,7 @@ func (m Mch) OrderSign4App(or orderRes) H {
 }
 
 // 将订单签名给小程序
-func (m Mch) OrderSign4MP(or orderRes) H {
+func (m Mch) OrderSign4MP(or OrderRes) H {
 	data := make(H)
 	data["appId"] = or.AppId
 	data["timeStamp"] = string(time.Now().Unix())
