@@ -134,7 +134,7 @@ func (m *Mp) JsCodeToken(code string) (rs jsAccessToken, err error) {
 type UserInfo struct {
 	OpenId        string  `json:"openid"`
 	NickName      string  `json:"nickname"`
-	Sex           int16   `json:"sex"`
+	Sex           int64   `json:"sex"`
 	Province      string  `json:"province"`
 	City          string  `json:"city"`
 	Country       string  `json:"country"`

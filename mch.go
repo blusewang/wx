@@ -56,31 +56,6 @@ func (or OrderRes) String() string {
 	return string(raw)
 }
 
-type PayNotify struct {
-	mchErr
-	AppId              string `xml:"appid"`
-	MchId              string `xml:"mchid"`
-	DeviceInfo         string `xml:"device_info"`
-	NonceStr           string `xml:"nonce_str"`
-	Sign               string `xml:"sign"`
-	SignType           string `xml:"sign_type"`
-	OpenId             string `xml:"openid"`
-	IsSubscribe        string `xml:"is_subscribe"`
-	TradeType          string `xml:"trade_type"`
-	BankType           string `xml:"bank_type"`
-	TotalFee           int64  `xml:"total_fee"`
-	SettlementTotalFee int64  `xml:"settlement_total_fee"`
-	FeeType            string `xml:"fee_type"`
-	CashFee            int64  `xml:"cash_fee"`
-	CashFeeType        string `xml:"cash_fee_type"`
-	CouponFee          int64  `xml:"coupon_fee"`
-	CouponCount        int64  `xml:"coupon_count"`
-	TransactionId      string `xml:"transaction_id"`
-	OutTradeNo         string `xml:"out_trade_no"`
-	Attach             string `xml:"attach"`
-	TimeEnd            string `xml:"time_end"`
-}
-
 func (m Mch) Order(req OrderReq) (rs OrderRes, err error) {
 	api := "https://api.mch.weixin.qq.com/pay/unifiedorder"
 	req.Sign = m.sign(req)
@@ -124,13 +99,42 @@ func (m Mch) OrderSign4MP(or OrderRes) H {
 }
 
 // 验证回调签名
-func (m Mch) PayNotify(data H) bool {
-	if data["return_code"] != "SUCCESS" || data["sign"] == "" {
+
+type PayNotify struct {
+	ReturnCode         string `xml:"return_code"`
+	ReturnMsg          string `xml:"return_msg"`
+	ResultCode         string `xml:"result_code"`
+	ErrCode            string `xml:"err_code"`
+	ErrCodeDes         string `xml:"err_code_des"`
+	AppId              string `xml:"appid"`
+	MchId              string `xml:"mch_id"`
+	DeviceInfo         string `xml:"device_info"`
+	NonceStr           string `xml:"nonce_str"`
+	Sign               string `xml:"sign"`
+	SignType           string `xml:"sign_type"`
+	OpenId             string `xml:"openid"`
+	IsSubscribe        string `xml:"is_subscribe"`
+	TradeType          string `xml:"trade_type"`
+	BankType           string `xml:"bank_type"`
+	TotalFee           int64  `xml:"total_fee"`
+	SettlementTotalFee int64  `xml:"settlement_total_fee"`
+	FeeType            string `xml:"fee_type"`
+	CashFee            int64  `xml:"cash_fee"`
+	CashFeeType        string `xml:"cash_fee_type"`
+	CouponFee          int64  `xml:"coupon_fee"`
+	CouponCount        int64  `xml:"coupon_count"`
+	TransactionId      string `xml:"transaction_id"`
+	OutTradeNo         string `xml:"out_trade_no"`
+	Attach             string `xml:"attach"`
+	TimeEnd            string `xml:"time_end"`
+}
+
+func (m Mch) PayNotify(pn PayNotify) bool {
+	if pn.ReturnCode != "SUCCESS" || pn.Sign == "" {
 		return false
 	}
-	sign := data["sign"]
-	delete(data, "sign")
-	if sign != m.paySign(data) {
+	sign := pn.Sign
+	if sign != m.sign(pn) {
 		return false
 	}
 	return true
