@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -89,7 +90,7 @@ func (m Mch) OrderSign4App(or OrderRes) H {
 func (m Mch) OrderSign4MP(or OrderRes) H {
 	data := make(H)
 	data["appId"] = or.AppId
-	data["timeStamp"] = string(time.Now().Unix())
+	data["timeStamp"] = strconv.FormatInt(time.Now().Unix(), 10)
 	data["nonceStr"] = NewRandStr(32)
 	data["package"] = fmt.Sprintf("prepay_id=%v", or.PrepayId)
 	data["signType"] = "MD5"
