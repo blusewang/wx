@@ -1,6 +1,7 @@
 package wxApi
 
 import (
+	"bytes"
 	"crypto/sha1"
 	"encoding/json"
 	"errors"
@@ -8,6 +9,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"mime/multipart"
 	"reflect"
 	"sort"
 	"strings"
@@ -318,6 +320,42 @@ func (m Mp) MpCode2Session(code string) (rs mpCode2SessionRes, err error) {
 	err = m.parse(raw, &rs)
 	if err != nil {
 		log.Println("GET", api, string(raw))
+	}
+	return
+}
+
+type mediaRes struct {
+	Type      string `json:"type"`
+	MediaId   string `json:"media_id"`
+	CreatedAt int64  `json:"created_at"`
+}
+
+func (m Mp) Upload(raw []byte, t string) (rs mediaRes, err error) {
+	ts := map[string]string{
+		"image": "jpg",
+		"voice": "mp3",
+		"video": "mp4",
+		"thumb": "jpg",
+	}
+	api := fmt.Sprintf("https://api.weixin.qq.com/cgi-bin/media/upload?access_token=%v&type=%v", m.AccessToken, t)
+	body := &bytes.Buffer{}
+	w := multipart.NewWriter(body)
+	wf, err := w.CreateFormFile("media", fmt.Sprintf("/tmp/media.%v", ts[t]))
+	if err != nil {
+		return
+	}
+	if _, err = wf.Write(raw); err != nil {
+		return
+	}
+	w.Close()
+	raw, err = postRaw(api, body, w.FormDataContentType())
+	if err != nil {
+		return
+	}
+
+	err = m.parse(raw, &rs)
+	if err != nil {
+		log.Println("POST", api)
 	}
 	return
 }

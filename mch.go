@@ -1,6 +1,7 @@
 package wxApi
 
 import (
+	"bytes"
 	"crypto/md5"
 	"crypto/tls"
 	"encoding/json"
@@ -64,7 +65,7 @@ func (m Mch) Order(req OrderReq) (rs OrderRes, err error) {
 	if err != nil {
 		return
 	}
-	raw, err = postRaw(api, raw)
+	raw, err = postRaw(api, bytes.NewBuffer(raw), "")
 	if err != nil {
 		return
 	}
