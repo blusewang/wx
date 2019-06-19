@@ -154,8 +154,8 @@ func (ui UserInfo) String() string {
 	raw, _ := json.Marshal(ui)
 	return string(raw)
 }
-func (m Mp) AppUserInfo(openId string) (rs UserInfo, err error) {
-	api := fmt.Sprintf("https://api.weixin.qq.com/sns/userinfo?access_token=%v&openid=%v&lang=zh_CN", m.AccessToken, openId)
+func (m Mp) AppUserInfo(at jsAccessToken) (rs UserInfo, err error) {
+	api := fmt.Sprintf("https://api.weixin.qq.com/sns/userinfo?access_token=%v&openid=%v&lang=zh_CN", at.AccessToken, at.Openid)
 	raw, err := get(api)
 	if err != nil {
 		return
@@ -188,6 +188,30 @@ func (m Mp) CreateShortQrCode(sceneId, secondsOut int) (rs shortQrCode, err erro
 	req.ExpireSeconds = secondsOut
 	req.ActionName = "QR_SCENE"
 	req.ActionInfo.Scene.SceneId = sceneId
+	api := fmt.Sprintf("https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token=%v", m.AccessToken)
+	raw, err := postJSON(api, req)
+	err = m.parse(raw, &rs)
+	if err != nil {
+		log.Println("POST", api, req, string(raw))
+	}
+	return
+}
+
+type shortQrStrCodeReq struct {
+	ExpireSeconds int    `json:"expire_seconds"`
+	ActionName    string `json:"action_name"`
+	ActionInfo    struct {
+		Scene struct {
+			SceneStr string `json:"scene_str"`
+		} `json:"scene"`
+	} `json:"action_info"`
+}
+
+func (m Mp) CreateShortQrStrCode(sceneStr string, secondsOut int) (rs shortQrCode, err error) {
+	var req shortQrStrCodeReq
+	req.ExpireSeconds = secondsOut
+	req.ActionName = "QR_STR_SCENE"
+	req.ActionInfo.Scene.SceneStr = sceneStr
 	api := fmt.Sprintf("https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token=%v", m.AccessToken)
 	raw, err := postJSON(api, req)
 	err = m.parse(raw, &rs)
@@ -240,7 +264,7 @@ func (m Mp) SendMsg(openid, msgType string, content interface{}) (err error) {
 		data[msgType] = H{
 			"media_id": content,
 		}
-	case "news":
+	default:
 		data[msgType] = content
 	}
 	raw, err := postJSON(api, data)
@@ -303,14 +327,14 @@ func (m Mp) MassSend(openIds []string, msgType string, content interface{}) (rs 
 }
 
 // 小程序 登录凭证校验
-type mpCode2SessionRes struct {
+type MpCode2SessionRes struct {
 	wxErr
 	OpenId     string `json:"openid"`
 	SessionKey string `json:"session_key"`
 	UnionId    string `json:"unionid"`
 }
 
-func (m Mp) MpCode2Session(code string) (rs mpCode2SessionRes, err error) {
+func (m Mp) MpCode2Session(code string) (rs MpCode2SessionRes, err error) {
 	api := fmt.Sprintf("https://api.weixin.qq.com/sns/jscode2session?appid=%v&secret=%v&js_code=%v"+
 		"&grant_type=authorization_code", m.AppId, m.AppSecret, code)
 	raw, err := get(api)
@@ -397,9 +421,10 @@ func (m Mp) HandleMsg(msg io.ReadCloser, handler interface{}) (err error) {
 
 	// 动态调用方法处理
 	action := reflect.ValueOf(handler).MethodByName(method)
-	if action == reflect.Zero(reflect.TypeOf(action)).Interface() {
+	if !action.IsValid() {
 		return nil
 	}
+
 	go action.Call([]reflect.Value{reflect.ValueOf(data)})
 
 	return nil
