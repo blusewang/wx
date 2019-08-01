@@ -401,7 +401,6 @@ func (m Mp) HandleMsg(msg io.ReadCloser, handler interface{}) (err error) {
 		return err
 	}
 	data = XmlToMap(string(raw), true)
-	log.Println(m.AppId, data)
 
 	// 判断数据项
 	if data["MsgType"] == nil || data["FromUserName"] == nil {
