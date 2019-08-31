@@ -130,6 +130,12 @@ type PayNotify struct {
 	TimeEnd            string `xml:"time_end"`
 }
 
+type NotifyRes struct {
+	XMLName    xml.Name `xml:"xml"`
+	ReturnCode string   `xml:"return_code"`
+	ReturnMsg  string   `xml:"return_msg"`
+}
+
 func (m Mch) PayNotify(pn PayNotify) bool {
 	if pn.ReturnCode != "SUCCESS" || pn.Sign == "" {
 		return false
