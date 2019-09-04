@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"log"
 	"mime/multipart"
+	"net/http"
 	"reflect"
 	"sort"
 	"strings"
@@ -441,4 +442,19 @@ func (m *Mp) parse(raw []byte, any interface{}) (err error) {
 		}
 		return err
 	}
+}
+
+func (m *Mp) ShortUrl(lUrl string) (sUrl string, err error) {
+	res, err := http.Get(fmt.Sprintf("https://api.weixin.qq.com/cgi-bin/shorturl?access_token=%v", m.AccessToken))
+	if err != nil {
+		return
+	}
+	var rs struct {
+		ShortUrl string `json:"short_url"`
+	}
+	if err = json.NewDecoder(res.Body).Decode(&rs); err != nil {
+		return
+	}
+	sUrl = rs.ShortUrl
+	return
 }
