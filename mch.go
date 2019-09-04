@@ -1,6 +1,7 @@
 package wxApi
 
 import (
+	"bytes"
 	"crypto/md5"
 	"crypto/tls"
 	"encoding/json"
@@ -64,7 +65,7 @@ func (m Mch) Order(req OrderReq) (rs OrderRes, err error) {
 	if err != nil {
 		return
 	}
-	raw, err = postRaw(api, raw)
+	raw, err = postRaw(api, bytes.NewBuffer(raw), "")
 	if err != nil {
 		return
 	}
@@ -100,7 +101,6 @@ func (m Mch) OrderSign4MP(or OrderRes) H {
 }
 
 // 验证回调签名
-
 type PayNotify struct {
 	ReturnCode         string `xml:"return_code"`
 	ReturnMsg          string `xml:"return_msg"`
@@ -128,6 +128,12 @@ type PayNotify struct {
 	OutTradeNo         string `xml:"out_trade_no"`
 	Attach             string `xml:"attach"`
 	TimeEnd            string `xml:"time_end"`
+}
+
+type NotifyRes struct {
+	XMLName    xml.Name `xml:"xml"`
+	ReturnCode string   `xml:"return_code"`
+	ReturnMsg  string   `xml:"return_msg"`
 }
 
 func (m Mch) PayNotify(pn PayNotify) bool {
@@ -199,6 +205,43 @@ func (m Mch) BankPay(bpr BankPayReq) (rs BankPayRes, err error) {
 	return
 }
 
+// 用于对商户企业付款到银行卡操作进行结果查询
+type BankQueryRes struct {
+	mchErr
+	PartnerTradeNo string `xml:"partner_trade_no"`
+	PaymentNo      string `xml:"payment_no"`
+	AmountFen      int64  `xml:"amount"`
+	Status         string `xml:"status"`
+	CMmsAmtFen     int64  `xml:"cmms_amt"`
+	CreateTime     string `xml:"create_time"`
+	PaySuccessTime string `xml:"pay_succ_time"`
+	Reason         string `xml:"reason"`
+}
+
+func (bp BankQueryRes) String() string {
+	raw, _ := json.Marshal(bp)
+	return string(raw)
+}
+func (m Mch) BankQuery(tradeNo string) (rs BankQueryRes, err error) {
+	err = m.prepareCert()
+	if err != nil {
+		return
+	}
+	api := "https://api.mch.weixin.qq.com/mmpaysptrans/query_bank"
+	data := make(H)
+	data["mch_id"] = m.MchId
+	data["partner_trade_no"] = tradeNo
+	data["nonce_str"] = NewRandStr(32)
+	data["sign"] = m.paySign(data)
+
+	raw, err := postWithCert(*m.mchCert, api, MapToXML(data))
+	if err != nil {
+		return
+	}
+	err = parseXml(raw, &rs)
+	return
+}
+
 // 发红包
 type RedPackReq struct {
 	XMLName     xml.Name `xml:"xml"`
@@ -252,36 +295,49 @@ func (m Mch) SendRedPack(req RedPackReq) (rs RedPackSendRes, err error) {
 	return
 }
 
-// 用于对商户企业付款到银行卡操作进行结果查询
-type BankQueryRes struct {
+// 企业付款至零钱
+type PayReq struct {
+	XMLName        xml.Name `xml:"xml"`
+	MchAppId       string   `xml:"mch_appid"`
+	MchId          string   `xml:"mchid"`
+	NonceStr       string   `xml:"nonce_str"`
+	Sign           string   `xml:"sign"`
+	PartnerTradeNo string   `xml:"partner_trade_no"`
+	OpenId         string   `xml:"openid"`
+	CheckName      string   `xml:"check_name"`
+	ReUserName     string   `xml:"re_user_name"`
+	Amount         int      `xml:"amount"`
+	Desc           string   `xml:"desc"`
+	SpBillCreateIp string   `xml:"spbill_create_ip"`
+}
+type payRes struct {
 	mchErr
+	MchAppId       string `xml:"mch_appid"`
+	MchId          string `xml:"mchid"`
+	NonceStr       string `xml:"nonce_str"`
 	PartnerTradeNo string `xml:"partner_trade_no"`
 	PaymentNo      string `xml:"payment_no"`
-	AmountFen      int64  `xml:"amount"`
-	Status         string `xml:"status"`
-	CMmsAmtFen     int64  `xml:"cmms_amt"`
-	CreateTime     string `xml:"create_time"`
-	PaySuccessTime string `xml:"pay_succ_time"`
-	Reason         string `xml:"reason"`
+	PaymentTime    string `xml:"payment_time"`
 }
 
-func (bp BankQueryRes) String() string {
-	raw, _ := json.Marshal(bp)
+func (res payRes) String() string {
+	raw, _ := json.Marshal(res)
 	return string(raw)
 }
-func (m Mch) BankQuery(tradeNo string) (rs BankQueryRes, err error) {
+func (m Mch) Pay(req PayReq) (rs payRes, err error) {
 	err = m.prepareCert()
 	if err != nil {
 		return
 	}
-	api := "https://api.mch.weixin.qq.com/mmpaysptrans/query_bank"
-	data := make(H)
-	data["mch_id"] = m.MchId
-	data["partner_trade_no"] = tradeNo
-	data["nonce_str"] = NewRandStr(32)
-	data["sign"] = m.paySign(data)
-
-	raw, err := postWithCert(*m.mchCert, api, MapToXML(data))
+	api := "https://api.mch.weixin.qq.com/mmpaymkttransfers/promotion/transfers"
+	req.MchId = m.MchId
+	req.NonceStr = NewRandStr(32)
+	req.Sign = m.sign(req)
+	raw, err := xml.Marshal(req)
+	if err != nil {
+		return
+	}
+	raw, err = postWithCert(*m.mchCert, api, raw)
 	if err != nil {
 		return
 	}

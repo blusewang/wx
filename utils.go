@@ -53,8 +53,7 @@ func postJSON(api string, postData interface{}) (raw []byte, err error) {
 		return
 	}
 	req.Header.Set("Content-Type", "application/json")
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return
 	}
@@ -64,15 +63,17 @@ func postJSON(api string, postData interface{}) (raw []byte, err error) {
 	return
 }
 
-func postRaw(api string, raw []byte) (bites []byte, err error) {
-	req, _ := http.NewRequest("POST", api, bytes.NewBuffer(raw))
-	client := &http.Client{}
-	resp, err := client.Do(req)
+func postRaw(api string, buf *bytes.Buffer, contentType string) (raw []byte, err error) {
+	req, _ := http.NewRequest("POST", api, buf)
+	if contentType != "" {
+		req.Header.Set("Content-Type", contentType)
+	}
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return
 	}
 	defer resp.Body.Close()
-	bites, err = ioutil.ReadAll(resp.Body)
+	raw, err = ioutil.ReadAll(resp.Body)
 	return
 }
 
