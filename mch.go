@@ -8,6 +8,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"net/http"
 	"reflect"
 	"strconv"
 	"strings"
@@ -61,15 +62,15 @@ func (or OrderRes) String() string {
 func (m Mch) Order(req OrderReq) (rs OrderRes, err error) {
 	api := "https://api.mch.weixin.qq.com/pay/unifiedorder"
 	req.Sign = m.sign(req)
-	raw, err := xml.Marshal(req)
+	buf := &bytes.Buffer{}
+	if err = xml.NewEncoder(buf).Encode(req); err != nil {
+		return
+	}
+	res, err := http.Post(api, "", buf)
 	if err != nil {
 		return
 	}
-	raw, err = postRaw(api, bytes.NewBuffer(raw), "")
-	if err != nil {
-		return
-	}
-	err = parseXml(raw, &rs)
+	err = xml.NewDecoder(res.Body).Decode(&rs)
 	return
 }
 
@@ -187,21 +188,20 @@ func (m Mch) BankPayReqEncrypt(bpr *BankPayReq) (err error) {
 	return
 }
 func (m Mch) BankPay(bpr BankPayReq) (rs BankPayRes, err error) {
-	err = m.prepareCert()
-	if err != nil {
+	if err = m.prepareCert(); err != nil {
 		return
 	}
 	api := "https://api.mch.weixin.qq.com/mmpaysptrans/pay_bank"
 	bpr.Sign = m.sign(bpr)
-	raw, err := xml.Marshal(bpr)
+	buf := &bytes.Buffer{}
+	if err = xml.NewEncoder(buf).Encode(bpr); err != nil {
+		return
+	}
+	body, err := postStreamWithCert(*m.mchCert, api, buf)
 	if err != nil {
 		return
 	}
-	raw, err = postWithCert(*m.mchCert, api, raw)
-	if err != nil {
-		return
-	}
-	err = parseXml(raw, &rs)
+	err = xml.NewDecoder(body).Decode(&rs)
 	return
 }
 
@@ -223,22 +223,33 @@ func (bp BankQueryRes) String() string {
 	return string(raw)
 }
 func (m Mch) BankQuery(tradeNo string) (rs BankQueryRes, err error) {
-	err = m.prepareCert()
-	if err != nil {
+	if err = m.prepareCert(); err != nil {
 		return
 	}
 	api := "https://api.mch.weixin.qq.com/mmpaysptrans/query_bank"
-	data := make(H)
-	data["mch_id"] = m.MchId
-	data["partner_trade_no"] = tradeNo
-	data["nonce_str"] = NewRandStr(32)
-	data["sign"] = m.paySign(data)
-
-	raw, err := postWithCert(*m.mchCert, api, MapToXML(data))
+	var req = struct {
+		XMLName        xml.Name `xml:"xml"`
+		MchId          string   `xml:"mch_id"`
+		PartnerTradeNo string   `xml:"partner_trade_no"`
+		NonceStr       string   `xml:"nonce_str"`
+		Sign           string   `xml:"sign"`
+	}{
+		MchId:          m.MchId,
+		PartnerTradeNo: tradeNo,
+		NonceStr:       NewRandStr(32),
+	}
+	req.Sign = m.sign(req)
+	buf := &bytes.Buffer{}
+	if err = xml.NewEncoder(buf).Encode(req); err != nil {
+		return
+	}
+	body, err := postStreamWithCert(*m.mchCert, api, buf)
 	if err != nil {
 		return
 	}
-	err = parseXml(raw, &rs)
+	if err = xml.NewDecoder(body).Decode(&rs); err != nil {
+		return
+	}
 	return
 }
 
@@ -345,6 +356,59 @@ func (m Mch) Pay(req PayReq) (rs payRes, err error) {
 	return
 }
 
+// 退款
+type RefundReq struct {
+	XMLName       xml.Name `xml:"xml"`
+	AppId         string   `xml:"app_id"`
+	MchId         string   `xml:"mchid"`
+	NonceStr      string   `xml:"nonce_str"`
+	Sign          string   `xml:"sign"`
+	TransactionId string   `xml:"transaction_id"`
+	OutTradeNo    string   `xml:"out_trade_no"`
+	OutRefundNo   string   `xml:"out_refund_no"`
+	TotalFee      int64    `xml:"total_fee"`
+	RefundFee     int64    `xml:"refund_fee"`
+	RefundDesc    string   `xml:"refund_desc"`
+	NotifyUrl     string   `xml:"notify_url"`
+}
+
+type refundRes struct {
+	mchErr
+	AppId         string `xml:"app_id"`
+	MchId         string `xml:"mchid"`
+	NonceStr      string `xml:"nonce_str"`
+	Sign          string `xml:"sign"`
+	TransactionId string `xml:"transaction_id"`
+	OutTradeNo    string `xml:"out_trade_no"`
+	OutRefundNo   string `xml:"out_refund_no"`
+	RefundId      string `xml:"refund_id"`
+	RefundFee     int64  `xml:"refund_fee"`
+	TotalFee      int64  `xml:"total_fee"`
+	CashFee       int64  `xml:"cash_fee"`
+}
+
+func (m Mch) Refund(req RefundReq) (rs refundRes, err error) {
+	if err = m.prepareCert(); err != nil {
+		return
+	}
+	api := "https://api.mch.weixin.qq.com/secapi/pay/refund"
+	req.MchId = m.MchId
+	req.NonceStr = NewRandStr(32)
+	req.Sign = m.sign(req)
+	var buf bytes.Buffer
+	if err = xml.NewEncoder(&buf).Encode(req); err != nil {
+		return
+	}
+	body, err := postStreamWithCert(*m.mchCert, api, &buf)
+	if err != nil {
+		return
+	}
+	if err = xml.NewDecoder(body).Decode(&rs); err != nil {
+		return
+	}
+	return
+}
+
 // 获取RSA公钥API获取RSA公钥
 type BankRSARes struct {
 	ReturnCode string `xml:"return_code"`
@@ -359,22 +423,35 @@ func (bp BankRSARes) String() string {
 	return string(raw)
 }
 func (m Mch) GetBankRSAPublicKey() (rs BankRSARes, err error) {
-	err = m.prepareCert()
-	if err != nil {
+	if err = m.prepareCert(); err != nil {
 		return
 	}
 
-	data := make(H)
-	data["mch_id"] = m.MchId
-	data["nonce_str"] = NewRandStr(32)
-	data["sign_type"] = "MD5"
-	data["sign"] = m.paySign(data)
+	var data = struct {
+		XMLName  xml.Name `xml:"xml"`
+		MchId    string   `xml:"mch_id"`
+		NonceStr string   `xml:"nonce_str"`
+		SignType string   `xml:"sign_type"`
+		Sign     string   `xml:"sign"`
+	}{
+		MchId:    m.MchId,
+		NonceStr: NewRandStr(32),
+		SignType: "MD5",
+	}
+	data.Sign = m.sign(data)
+	buf := &bytes.Buffer{}
+	if err = xml.NewEncoder(buf).Encode(data); err != nil {
+		return
+	}
 
-	raw, err := postWithCert(*m.mchCert, "https://fraud.mch.weixin.qq.com/risk/getpublickey", MapToXML(data))
+	body, err := postStreamWithCert(*m.mchCert, "https://fraud.mch.weixin.qq.com/risk/getpublickey", buf)
 	if err != nil {
 		return
 	}
-	err = xml.Unmarshal(raw, &rs)
+	if err = xml.NewDecoder(body).Decode(&rs); err != nil {
+		return
+	}
+
 	return
 }
 

@@ -373,15 +373,11 @@ func (m Mp) Upload(raw []byte, t string) (rs mediaRes, err error) {
 		return
 	}
 	w.Close()
-	raw, err = postRaw(api, body, w.FormDataContentType())
+	res, err := http.Post(api, w.FormDataContentType(), body)
 	if err != nil {
 		return
 	}
-
-	err = m.parse(raw, &rs)
-	if err != nil {
-		log.Println("POST", api)
-	}
+	err = json.NewDecoder(res.Body).Decode(&rs)
 	return
 }
 
@@ -445,15 +441,24 @@ func (m *Mp) parse(raw []byte, any interface{}) (err error) {
 }
 
 func (m *Mp) ShortUrl(lUrl string) (sUrl string, err error) {
-	res, err := http.Get(fmt.Sprintf("https://api.weixin.qq.com/cgi-bin/shorturl?access_token=%v", m.AccessToken))
+	res, err := http.Post(
+		fmt.Sprintf("https://api.weixin.qq.com/cgi-bin/shorturl?access_token=%v", m.AccessToken),
+		"application/json",
+		strings.NewReader(fmt.Sprintf(`{"action":"long2short","long_url":"%v"}`, lUrl)),
+	)
 	if err != nil {
 		return
 	}
 	var rs struct {
+		ErrCode  int    `json:"errcode"`
+		ErrMsg   string `json:"errmsg"`
 		ShortUrl string `json:"short_url"`
 	}
 	if err = json.NewDecoder(res.Body).Decode(&rs); err != nil {
 		return
+	}
+	if rs.ErrCode > 0 {
+		err = errors.New(rs.ErrMsg)
 	}
 	sUrl = rs.ShortUrl
 	return
