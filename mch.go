@@ -8,6 +8,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -359,8 +360,8 @@ func (m Mch) Pay(req PayReq) (rs payRes, err error) {
 // 退款
 type RefundReq struct {
 	XMLName       xml.Name `xml:"xml"`
-	AppId         string   `xml:"app_id"`
-	MchId         string   `xml:"mchid"`
+	AppId         string   `xml:"appid"`
+	MchId         string   `xml:"mch_id"`
 	NonceStr      string   `xml:"nonce_str"`
 	Sign          string   `xml:"sign"`
 	TransactionId string   `xml:"transaction_id"`
@@ -374,8 +375,8 @@ type RefundReq struct {
 
 type refundRes struct {
 	mchErr
-	AppId         string `xml:"app_id"`
-	MchId         string `xml:"mchid"`
+	AppId         string `xml:"appid"`
+	MchId         string `xml:"mch_id"`
 	NonceStr      string `xml:"nonce_str"`
 	Sign          string `xml:"sign"`
 	TransactionId string `xml:"transaction_id"`
@@ -395,6 +396,8 @@ func (m Mch) Refund(req RefundReq) (rs refundRes, err error) {
 	req.MchId = m.MchId
 	req.NonceStr = NewRandStr(32)
 	req.Sign = m.sign(req)
+	raw, _ := xml.Marshal(req)
+	log.Println(string(raw))
 	var buf bytes.Buffer
 	if err = xml.NewEncoder(&buf).Encode(req); err != nil {
 		return
