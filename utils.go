@@ -15,10 +15,10 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
-	"reflect"
 	"sort"
 	"strings"
 	"time"
@@ -37,43 +37,22 @@ func get(api string) (raw []byte, err error) {
 	if err != nil {
 		return
 	}
-	defer resp.Body.Close()
 	raw, err = ioutil.ReadAll(resp.Body)
-	//log.Println("API ===> GET",api,string(raw))
+	_ = resp.Body.Close()
 	return
 }
 
 func postJSON(api string, postData interface{}) (raw []byte, err error) {
-	bin, err := json.Marshal(postData)
+	buf := &bytes.Buffer{}
+	if err = json.NewEncoder(buf).Encode(postData); err != nil {
+		return
+	}
+	resp, err := http.Post(api, "application/json", buf)
 	if err != nil {
 		return
 	}
-	req, err := http.NewRequest("POST", api, bytes.NewBuffer(bin))
-	if err != nil {
-		return
-	}
-	req.Header.Set("Content-Type", "application/json")
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return
-	}
-	defer resp.Body.Close()
 	raw, err = ioutil.ReadAll(resp.Body)
-	//log.Println("API ===> POST",api,postData,string(raw))
-	return
-}
-
-func postRaw(api string, buf *bytes.Buffer, contentType string) (raw []byte, err error) {
-	req, _ := http.NewRequest("POST", api, buf)
-	if contentType != "" {
-		req.Header.Set("Content-Type", contentType)
-	}
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return
-	}
-	defer resp.Body.Close()
-	raw, err = ioutil.ReadAll(resp.Body)
+	_ = resp.Body.Close()
 	return
 }
 
@@ -118,6 +97,27 @@ func postWithCert(cert tls.Certificate, api string, body []byte) (raw []byte, er
 	}
 	defer resp.Body.Close()
 	raw, err = ioutil.ReadAll(resp.Body)
+	return
+}
+
+func postStreamWithCert(cert tls.Certificate, api string, data io.Reader) (body io.ReadCloser, err error) {
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				Certificates: []tls.Certificate{cert},
+			},
+			DisableCompression: true,
+		},
+	}
+	req, err := http.NewRequest("POST", api, data)
+	if err != nil {
+		return
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return
+	}
+	body = resp.Body
 	return
 }
 
@@ -188,19 +188,6 @@ func mapSortByKey(data map[string]interface{}) string {
 		nData = fmt.Sprintf("%v&%v=%v", nData, k, data[k])
 	}
 	return nData[1:]
-}
-
-func MapToXML(data map[string]interface{}) []byte {
-	xmlStr := "<xml>"
-	for k, v := range data {
-		if reflect.TypeOf(v).Name() == "string" {
-			xmlStr += fmt.Sprintf("<%v><![CDATA[%v]]></%v>", k, v, k)
-		} else {
-			xmlStr += fmt.Sprintf("<%v>%v</%v>", k, v, k)
-		}
-	}
-	xmlStr += "</xml>"
-	return []byte(xmlStr)
 }
 
 var certs = make(map[string]*tls.Certificate)
