@@ -22,7 +22,7 @@ func (m mchErr) IsRequestSuccess() bool {
 	return m.ReturnCode == "SUCCESS" && m.ResultCode == "SUCCESS" && (m.ErrCode == "SUCCESS" || m.ErrCode == "")
 }
 
-func (m mchErr) IsBankPayUnCertain() bool {
+func (m mchErr) IsResponseUnCertain() bool {
 	return m.ErrCode == "SYSTEMERROR"
 }
 

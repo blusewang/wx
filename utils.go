@@ -22,7 +22,6 @@ import (
 	"sort"
 	"strings"
 	"time"
-	"unicode/utf8"
 )
 
 type H map[string]interface{}
@@ -149,18 +148,11 @@ func XmlToMap(xmlStr string, isIgnoreFirst bool) map[string]interface{} {
 }
 
 func SafeString(str string, length int) string {
-	var ss = ""
-	for _, v := range str {
-		if _, size := utf8.DecodeRuneInString(string(v)); size <= 3 {
-			ss += string(v)
-		}
+	if len([]rune(str)) > length {
+		return string([]rune(str)[:length])
+	} else {
+		return str
 	}
-	var rs = []rune(ss)
-	if len(rs)*3 > length {
-		rs = rs[:(length/3)-1]
-		rs = append(rs, rune('…'))
-	}
-	return string(rs)
 }
 
 func NewRandStr(length int) string {
