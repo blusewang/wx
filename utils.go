@@ -149,6 +149,12 @@ func XmlToMap(xmlStr string, isIgnoreFirst bool) map[string]interface{} {
 
 func SafeString(str string, length int) string {
 	runs := []rune(str)
+	// 单字符长度高于3的，不是一般的utf8字符，剔除掉
+	for k, v := range runs {
+		if len([]byte(string(v))) > 3 {
+			runs[k] = '*'
+		}
+	}
 	var r2 []rune
 	if len([]byte(str)) > length {
 		for k := range runs {
