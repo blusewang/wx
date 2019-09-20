@@ -155,8 +155,9 @@ func SafeString(str string, length int) string {
 			runs[k] = '*'
 		}
 	}
-	var r2 []rune
+	str = string(runs)
 	if len([]byte(str)) > length {
+		var r2 []rune
 		for k := range runs {
 			if len([]byte(string(runs[:k]))) <= length {
 				r2 = runs[:k]
