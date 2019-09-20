@@ -6,5 +6,6 @@ import (
 )
 
 func TestSafeString(t *testing.T) {
-	log.Println(SafeString("A     晟鑫造型    卢洋", 7))
+	str := "大慢美业美容服务有限公司中"
+	log.Println(SafeString(str, 32))
 }

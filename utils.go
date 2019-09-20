@@ -148,11 +148,19 @@ func XmlToMap(xmlStr string, isIgnoreFirst bool) map[string]interface{} {
 }
 
 func SafeString(str string, length int) string {
-	if len([]rune(str)) > length {
-		return string([]rune(str)[:length])
-	} else {
-		return str
+	runs := []rune(str)
+	var r2 []rune
+	if len([]byte(str)) > length {
+		for k := range runs {
+			if len([]byte(string(runs[:k]))) <= length {
+				r2 = runs[:k]
+			}
+		}
+		r2 = r2[:len(r2)-1]
+		r2 = append(r2, '…')
+		str = string(r2)
 	}
+	return str
 }
 
 func NewRandStr(length int) string {
