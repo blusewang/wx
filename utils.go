@@ -151,7 +151,7 @@ func SafeString(str string, length int) string {
 	runs := []rune(str)
 	// 单字符长度高于3的，不是一般的utf8字符，剔除掉
 	for k, v := range runs {
-		if len([]byte(string(v))) > 3 {
+		if len([]byte(string(v))) > 3 || len([]byte(string(v))) == 2 {
 			runs[k] = '*'
 		}
 	}
@@ -178,7 +178,7 @@ func NewRandStr(length int) string {
 
 	for i := 0; i < length; i++ {
 		idx := rand.Intn(codeLen)
-		data[i] = byte(codes[idx])
+		data[i] = codes[idx]
 	}
 
 	return string(data)
