@@ -2,17 +2,16 @@ package wxApi
 
 import (
 	"bytes"
+	"crypto/hmac"
 	"crypto/md5"
+	"crypto/sha256"
 	"crypto/tls"
 	"encoding/json"
 	"encoding/xml"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
-	"reflect"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -43,6 +42,7 @@ type OrderReq struct {
 	TradeType      string   `xml:"trade_type"`
 	Attach         string   `xml:"attach"`
 	Sign           string   `xml:"sign"`
+	ProfitSharing  string   `xml:"profit_sharing"`
 }
 
 type OrderRes struct {
@@ -62,8 +62,11 @@ func (or OrderRes) String() string {
 
 func (m Mch) Order(req OrderReq) (rs OrderRes, err error) {
 	api := "https://api.mch.weixin.qq.com/pay/unifiedorder"
+	if req.ProfitSharing == "" {
+		req.ProfitSharing = "N"
+	}
 	req.Sign = m.sign(req)
-	buf := &bytes.Buffer{}
+	buf := new(bytes.Buffer)
 	if err = xml.NewEncoder(buf).Encode(req); err != nil {
 		return
 	}
@@ -149,6 +152,73 @@ func (m Mch) PayNotify(pn PayNotify) bool {
 	return true
 }
 
+// 请求单次分账
+type ProfitSharingReq struct {
+	XMLName       xml.Name                   `xml:"xml"`
+	MchId         string                     `xml:"mch_id"`
+	AppId         string                     `xml:"appid"`
+	NonceStr      string                     `xml:"nonce_str"`
+	Sign          string                     `xml:"sign"`
+	TransactionId string                     `xml:"transaction_id"`
+	OutOrderNo    string                     `xml:"out_order_no"`
+	Receivers     string                     `xml:"receivers"`
+	ReceiverSlice []ProfitSharingReqReceiver `xml:"-"`
+}
+
+type ProfitSharingReqReceiver struct {
+	Type        string `json:"type"`
+	Account     string `json:"account"`
+	Amount      int64  `json:"amount"`
+	Description string `json:"description"`
+}
+
+type ProfitSharingRes struct {
+	mchErr
+	MchId         string `xml:"mch_id"`
+	AppId         string `xml:"appid"`
+	NonceStr      string `xml:"nonce_str"`
+	Sign          string `xml:"sign"`
+	TransactionId string `xml:"transaction_id"`
+	OutOrderNo    string `xml:"out_order_no"`
+	OrderId       string `xml:"order_id"`
+}
+
+func (r ProfitSharingRes) String() string {
+	raw, _ := json.Marshal(r)
+	return string(raw)
+}
+
+func (m Mch) ProfitSharing(req ProfitSharingReq) (rs ProfitSharingRes, err error) {
+	if err = m.prepareCert(); err != nil {
+		return
+	}
+	if len(req.ReceiverSlice) == 0 {
+		err = errors.New("接收方列表不能为空")
+		return
+	}
+	raw, err := json.Marshal(req.ReceiverSlice)
+	if err != nil {
+		return
+	}
+
+	req.Receivers = string(raw)
+	req.MchId = m.MchId
+	req.Sign = m.payHmacSha256Sign(req)
+
+	buf := new(bytes.Buffer)
+	if err = xml.NewEncoder(buf).Encode(req); err != nil {
+		return
+	}
+
+	api := "https://api.mch.weixin.qq.com/secapi/pay/profitsharing"
+	body, err := postStreamWithCert(*m.mchCert, api, buf)
+	if err != nil {
+		return
+	}
+	err = xml.NewDecoder(body).Decode(&rs)
+	return
+}
+
 // 企业付款到银行卡
 type BankPayReq struct {
 	XMLName        xml.Name `xml:"xml"`
@@ -194,7 +264,7 @@ func (m Mch) BankPay(bpr BankPayReq) (rs BankPayRes, err error) {
 	}
 	api := "https://api.mch.weixin.qq.com/mmpaysptrans/pay_bank"
 	bpr.Sign = m.sign(bpr)
-	buf := &bytes.Buffer{}
+	buf := new(bytes.Buffer)
 	if err = xml.NewEncoder(buf).Encode(bpr); err != nil {
 		return
 	}
@@ -240,7 +310,7 @@ func (m Mch) BankQuery(tradeNo string) (rs BankQueryRes, err error) {
 		NonceStr:       NewRandStr(32),
 	}
 	req.Sign = m.sign(req)
-	buf := &bytes.Buffer{}
+	buf := new(bytes.Buffer)
 	if err = xml.NewEncoder(buf).Encode(req); err != nil {
 		return
 	}
@@ -396,13 +466,11 @@ func (m Mch) Refund(req RefundReq) (rs refundRes, err error) {
 	req.MchId = m.MchId
 	req.NonceStr = NewRandStr(32)
 	req.Sign = m.sign(req)
-	raw, _ := xml.Marshal(req)
-	log.Println(string(raw))
-	var buf bytes.Buffer
-	if err = xml.NewEncoder(&buf).Encode(req); err != nil {
+	var buf = new(bytes.Buffer)
+	if err = xml.NewEncoder(buf).Encode(req); err != nil {
 		return
 	}
-	body, err := postStreamWithCert(*m.mchCert, api, &buf)
+	body, err := postStreamWithCert(*m.mchCert, api, buf)
 	if err != nil {
 		return
 	}
@@ -442,7 +510,7 @@ func (m Mch) GetBankRSAPublicKey() (rs BankRSARes, err error) {
 		SignType: "MD5",
 	}
 	data.Sign = m.sign(data)
-	buf := &bytes.Buffer{}
+	buf := new(bytes.Buffer)
 	if err = xml.NewEncoder(buf).Encode(data); err != nil {
 		return
 	}
@@ -459,38 +527,18 @@ func (m Mch) GetBankRSAPublicKey() (rs BankRSARes, err error) {
 }
 
 func (m Mch) sign(obj interface{}) (sign string) {
-	ts := reflect.TypeOf(obj)
-	vs := reflect.ValueOf(obj)
-	p := make(map[string]interface{})
-	n := ts.NumField()
-	for i := 0; i < n; i++ {
-		k := ts.Field(i).Tag.Get("json")
-		if k == "" {
-			k = ts.Field(i).Tag.Get("xml")
-			if k == "xml" {
-				continue
-			}
-		}
-		if k == "sign" {
-			continue
-		}
-		// 跳过空值
-		if reflect.Zero(vs.Field(i).Type()).Interface() == vs.Field(i).Interface() {
-			continue
-		}
-		p[k] = vs.Field(i).Interface()
-	}
-
-	str := mapSortByKey(p)
-	raw := md5.Sum([]byte(str + "&key=" + m.MchKey))
-	sign = strings.ToUpper(fmt.Sprintf("%x", raw))
+	sign = fmt.Sprintf("%X", md5.Sum([]byte(mapSortByKey(obj2map(obj))+"&key="+m.MchKey)))
 	return
 }
 
 func (m Mch) paySign(data map[string]interface{}) string {
-	str := mapSortByKey(data)
-	bits := md5.Sum([]byte(str + "&key=" + m.MchKey))
-	return strings.ToUpper(fmt.Sprintf("%x", bits))
+	return fmt.Sprintf("%X", md5.Sum([]byte(mapSortByKey(data)+"&key="+m.MchKey)))
+}
+
+func (m Mch) payHmacSha256Sign(obj interface{}) string {
+	hm := hmac.New(sha256.New, []byte(m.MchKey))
+	hm.Write([]byte(mapSortByKey(obj2map(obj)) + "&key=" + m.MchKey))
+	return fmt.Sprintf("%X", hm.Sum(nil))
 }
 
 func (m *Mch) prepareCert() (err error) {

@@ -19,6 +19,7 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net/http"
+	"reflect"
 	"sort"
 	"strings"
 	"time"
@@ -182,6 +183,30 @@ func NewRandStr(length int) string {
 	}
 
 	return string(data)
+}
+func obj2map(obj interface{}) (p map[string]interface{}) {
+	ts := reflect.TypeOf(obj)
+	vs := reflect.ValueOf(obj)
+	p = make(map[string]interface{})
+	n := ts.NumField()
+	for i := 0; i < n; i++ {
+		k := ts.Field(i).Tag.Get("json")
+		if k == "" {
+			k = ts.Field(i).Tag.Get("xml")
+			if k == "xml" {
+				continue
+			}
+		}
+		if k == "sign" || k == "-" {
+			continue
+		}
+		// 跳过空值
+		if reflect.Zero(vs.Field(i).Type()).Interface() == vs.Field(i).Interface() {
+			continue
+		}
+		p[k] = vs.Field(i).Interface()
+	}
+	return
 }
 func mapSortByKey(data map[string]interface{}) string {
 	var keys []string
