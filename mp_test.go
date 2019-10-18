@@ -1,6 +1,7 @@
 package wxApi
 
 import (
+	"fmt"
 	"log"
 	"testing"
 )
@@ -13,4 +14,8 @@ func TestMp_UrlSign(t *testing.T) {
 
 	var rs = mp.UrlSign("http://www.mywsy.cn/")
 	log.Println(rs)
+}
+
+func TestMp_AppAuthToken(t *testing.T) {
+	log.Println(fmt.Sprintf("%X", []byte("时会将订单剩余")))
 }

@@ -19,6 +19,7 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net/http"
+	"reflect"
 	"sort"
 	"strings"
 	"time"
@@ -151,12 +152,13 @@ func SafeString(str string, length int) string {
 	runs := []rune(str)
 	// 单字符长度高于3的，不是一般的utf8字符，剔除掉
 	for k, v := range runs {
-		if len([]byte(string(v))) > 3 {
+		if len([]byte(string(v))) > 3 || len([]byte(string(v))) == 2 {
 			runs[k] = '*'
 		}
 	}
-	var r2 []rune
+	str = string(runs)
 	if len([]byte(str)) > length {
+		var r2 []rune
 		for k := range runs {
 			if len([]byte(string(runs[:k]))) <= length {
 				r2 = runs[:k]
@@ -177,10 +179,34 @@ func NewRandStr(length int) string {
 
 	for i := 0; i < length; i++ {
 		idx := rand.Intn(codeLen)
-		data[i] = byte(codes[idx])
+		data[i] = codes[idx]
 	}
 
 	return string(data)
+}
+func obj2map(obj interface{}) (p map[string]interface{}) {
+	ts := reflect.TypeOf(obj)
+	vs := reflect.ValueOf(obj)
+	p = make(map[string]interface{})
+	n := ts.NumField()
+	for i := 0; i < n; i++ {
+		k := ts.Field(i).Tag.Get("json")
+		if k == "" {
+			k = ts.Field(i).Tag.Get("xml")
+			if k == "xml" {
+				continue
+			}
+		}
+		if k == "sign" || k == "-" {
+			continue
+		}
+		// 跳过空值
+		if reflect.Zero(vs.Field(i).Type()).Interface() == vs.Field(i).Interface() {
+			continue
+		}
+		p[k] = vs.Field(i).Interface()
+	}
+	return
 }
 func mapSortByKey(data map[string]interface{}) string {
 	var keys []string
