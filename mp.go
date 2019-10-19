@@ -298,9 +298,6 @@ func (m Mp) SendTpsMsg(openid, tplId, path string, content interface{}) (rs tpsM
 		return
 	}
 	err = m.parse(raw, &rs)
-	if err != nil {
-		log.Println("POST", api, data, string(raw))
-	}
 	return
 }
 

@@ -219,6 +219,39 @@ func (m Mch) ProfitSharing(req ProfitSharingReq) (rs ProfitSharingRes, err error
 	return
 }
 
+// 完结分账
+type ProfitSharingFinishReq struct {
+	XMLName       xml.Name `xml:"xml"`
+	MchId         string   `xml:"mch_id"`
+	AppId         string   `xml:"appid"`
+	NonceStr      string   `xml:"nonce_str"`
+	Sign          string   `xml:"sign"`
+	TransactionId string   `xml:"transaction_id"`
+	OutOrderNo    string   `xml:"out_order_no"`
+	Description   string   `xml:"description"`
+}
+
+func (m Mch) ProfitSharingFinish(req ProfitSharingFinishReq) (rs ProfitSharingRes, err error) {
+	if err = m.prepareCert(); err != nil {
+		return
+	}
+	req.MchId = m.MchId
+	req.Sign = m.payHmacSha256Sign(req)
+
+	buf := new(bytes.Buffer)
+	if err = xml.NewEncoder(buf).Encode(req); err != nil {
+		return
+	}
+
+	api := "https://api.mch.weixin.qq.com/secapi/pay/profitsharingfinish"
+	body, err := postStreamWithCert(*m.mchCert, api, buf)
+	if err != nil {
+		return
+	}
+	err = xml.NewDecoder(body).Decode(&rs)
+	return
+}
+
 // 企业付款到银行卡
 type BankPayReq struct {
 	XMLName        xml.Name `xml:"xml"`
