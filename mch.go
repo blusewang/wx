@@ -410,6 +410,64 @@ func (m Mch) SendRedPack(req RedPackReq) (rs RedPackSendRes, err error) {
 	return
 }
 
+// 查红包状态
+type RedPackQueryReq struct {
+	XMLName   xml.Name `xml:"xml"`
+	NonceStr  string   `xml:"nonce_str"`
+	Sign      string   `xml:"sign"`
+	MchBillNo string   `xml:"mch_billno"`
+	MchId     string   `xml:"mch_id"`
+	AppId     string   `xml:"appid"`
+	BillType  string   `xml:"bill_type"`
+}
+type RedPackQueryRes struct {
+	mchErr
+	MchBillNo    string  `xml:"mch_billno"`
+	MchId        string  `xml:"mch_id"`
+	Status       string  `xml:"status"`
+	SendType     string  `xml:"send_type"`
+	HbType       string  `xml:"hb_type"`
+	Reason       *string `xml:"reason"`
+	SendTime     string  `xml:"send_time"`
+	RefundTime   *string `xml:"refund_time"`
+	RefundAmount *int    `xml:"refund_amount"`
+	Wishing      *string `xml:"wishing"`
+	Remark       *string `xml:"remark"`
+	ActName      *string `xml:"act_name"`
+	HbList       *[]struct {
+		HbInfo []struct {
+			OpenId  string `xml:"openid"`
+			Amount  int    `xml:"amount"`
+			RcvTime string `xml:"rcv_time"`
+		} `xml:"hbinfo"`
+	} `xml:"hblist"`
+}
+
+func (res RedPackQueryRes) String() string {
+	raw, _ := json.Marshal(res)
+	return string(raw)
+}
+
+func (m Mch) RedPackQuery(req RedPackQueryReq) (rs RedPackQueryRes, err error) {
+	if err = m.prepareCert(); err != nil {
+		return
+	}
+	api := "https://api.mch.weixin.qq.com/mmpaymkttransfers/gethbinfo"
+	req.MchId = m.MchId
+	req.NonceStr = NewRandStr(32)
+	req.Sign = m.sign(req)
+	var buf = new(bytes.Buffer)
+	if err = xml.NewEncoder(buf).Encode(req); err != nil {
+		return
+	}
+	resp, err := postWithCert2(*m.mchCert, api, buf)
+	if err != nil {
+		return
+	}
+	err = xml.NewDecoder(resp.Body).Decode(&rs)
+	return
+}
+
 // 企业付款至零钱
 type PayReq struct {
 	XMLName        xml.Name `xml:"xml"`

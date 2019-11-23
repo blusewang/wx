@@ -100,6 +100,23 @@ func postWithCert(cert tls.Certificate, api string, body []byte) (raw []byte, er
 	return
 }
 
+func postWithCert2(cert tls.Certificate, api string, body io.Reader) (resp *http.Response, err error) {
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				Certificates: []tls.Certificate{cert},
+			},
+			DisableCompression: true,
+		},
+	}
+	req, err := http.NewRequest("POST", api, body)
+	if err != nil {
+		return
+	}
+	resp, err = client.Do(req)
+	return
+}
+
 func postStreamWithCert(cert tls.Certificate, api string, data io.Reader) (body io.ReadCloser, err error) {
 	client := &http.Client{
 		Transport: &http.Transport{
