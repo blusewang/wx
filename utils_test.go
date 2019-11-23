@@ -7,7 +7,7 @@ import (
 )
 
 func TestSafeString(t *testing.T) {
-	str := "来自[唯τā命゛L]的成交奖励"
+	str := "来自[唯τā命゛L金剪子￿LK]的成交奖励"
 	for k, v := range []rune(str) {
 		log.Println(k, string(v), utf8.ValidRune(v), len([]byte(string(v))), v)
 	}

@@ -152,7 +152,7 @@ func SafeString(str string, length int) string {
 	runs := []rune(str)
 	// 单字符长度高于3的，不是一般的utf8字符，剔除掉
 	for k, v := range runs {
-		if len([]byte(string(v))) > 3 || len([]byte(string(v))) == 2 {
+		if len([]byte(string(v))) > 3 || len([]byte(string(v))) == 2 || v == 65535 {
 			runs[k] = '*'
 		}
 	}
