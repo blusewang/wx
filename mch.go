@@ -434,7 +434,7 @@ type RedPackQueryRes struct {
 	Wishing      *string `xml:"wishing"`
 	Remark       *string `xml:"remark"`
 	ActName      *string `xml:"act_name"`
-	HbList       *[]struct {
+	HbList       []struct {
 		HbInfo []struct {
 			OpenId  string `xml:"openid"`
 			Amount  int    `xml:"amount"`

@@ -422,7 +422,7 @@ func aesDecryptMsg(ciphertext []byte, aesKey []byte) (random, rawXMLMsg, appID [
 	if err != nil {
 		panic(err)
 	}
-	mode := cipher.NewCBCDecrypter(block, aesKey[:16])
+	mode := cipher.NewCBCDecrypter(block, aesKey[:block.BlockSize()])
 	mode.CryptBlocks(plaintext, ciphertext)
 
 	// PKCS#7 去除补位
