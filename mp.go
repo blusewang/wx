@@ -38,12 +38,13 @@ type MpBaseResp struct {
 	ErrMsg  string `json:"errmsg"`
 }
 
-// 获取access_token
+// access_token
 type accessTokenRes struct {
 	AccessToken string `json:"access_token"`
 	ExpiresIn   int64  `json:"expires_in"`
 }
 
+// 获取access_token
 func (m Mp) AuthToken() (rs accessTokenRes, err error) {
 	api := fmt.Sprintf("https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=%v&secret=%v", m.AppId, m.AppSecret)
 	raw, err := get(api)
@@ -57,7 +58,7 @@ func (m Mp) AuthToken() (rs accessTokenRes, err error) {
 	return
 }
 
-// App 通过code获取access_token
+// App access_token
 type appAuthToken struct {
 	AccessToken  string `json:"access_token"`
 	ExpiresIn    int64  `json:"expires_in"`
@@ -66,6 +67,7 @@ type appAuthToken struct {
 	Scope        string `json:"scope"`
 }
 
+// App 通过code获取access_token
 func (m Mp) AppAuthToken(code string) (rs appAuthToken, err error) {
 	api := fmt.Sprintf("https://api.weixin.qq.com/sns/oauth2/access_token?appid=%v&secret=%v&code=%v"+
 		"&grant_type=authorization_code", m.AppId, m.AppSecret, code)
@@ -80,12 +82,13 @@ func (m Mp) AppAuthToken(code string) (rs appAuthToken, err error) {
 	return
 }
 
-// 获取access_token
+// access_token
 type ticket struct {
 	Ticket    string `json:"ticket"`
 	ExpiresIn int64  `json:"expires_in"`
 }
 
+// 获取access_token
 func (m *Mp) GetTicket(ticketType string) (rs ticket, err error) {
 	api := fmt.Sprintf("https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=%v&type=%v",
 		m.AccessToken, ticketType)
@@ -116,13 +119,14 @@ func (m Mp) UrlSign(url string) (d H) {
 	return
 }
 
+// SHA1签名
 func (m Mp) sha1Sign(data H) string {
 	str := mapSortByKey(data)
 	raw := sha1.Sum([]byte(str))
 	return strings.ToUpper(fmt.Sprintf("%x", raw))
 }
 
-// 获取js sdk access_token
+// js sdk access_token
 type jsAccessToken struct {
 	AccessToken  string `json:"access_token"`
 	ExpiresIn    int64  `json:"expires_in"`
@@ -130,6 +134,7 @@ type jsAccessToken struct {
 	Openid       string `json:"openid"`
 }
 
+// 获取js sdk access_token
 func (m *Mp) JsCodeToken(code string) (rs jsAccessToken, err error) {
 	api := fmt.Sprintf("https://api.weixin.qq.com/sns/oauth2/access_token?appid=%v&secret=%v&code=%v&grant_type=authorization_code",
 		m.AppId, m.AppSecret, code)
@@ -144,7 +149,7 @@ func (m *Mp) JsCodeToken(code string) (rs jsAccessToken, err error) {
 	return
 }
 
-// App 获取用户个人信息（UnionID机制）
+// 微信粉丝信息
 type UserInfo struct {
 	OpenId        string  `json:"openid"`
 	NickName      string  `json:"nickname"`
@@ -166,6 +171,8 @@ func (ui UserInfo) String() string {
 	raw, _ := json.Marshal(ui)
 	return string(raw)
 }
+
+// 获取粉丝微信信息（UnionID机制）
 func (m Mp) AppUserInfo(at jsAccessToken) (rs UserInfo, err error) {
 	api := fmt.Sprintf("https://api.weixin.qq.com/sns/userinfo?access_token=%v&openid=%v&lang=zh_CN",
 		at.AccessToken, at.Openid)
@@ -180,7 +187,7 @@ func (m Mp) AppUserInfo(at jsAccessToken) (rs UserInfo, err error) {
 	return
 }
 
-// 获取用户列表
+// 获取用户ID列表结果
 type UsersSegment struct {
 	Total int64 `json:"total"`
 	Count int64 `json:"count"`
@@ -190,6 +197,7 @@ type UsersSegment struct {
 	NextOpenId string `json:"next_openid"`
 }
 
+// 获取用户ID列表
 func (m Mp) UserGet(nextOpenId string) (us UsersSegment, err error) {
 	api := fmt.Sprintf("https://api.weixin.qq.com/cgi-bin/user/get?access_token=%v&next_openid=%v",
 		m.AccessToken, nextOpenId)
@@ -201,17 +209,23 @@ func (m Mp) UserGet(nextOpenId string) (us UsersSegment, err error) {
 	return
 }
 
+// 批量获取粉丝信息请求项
 type UserGetBatchReqItem struct {
 	Openid string `json:"openid"`
 	Lang   string `json:"lang"`
 }
+
+// 批量获取粉丝请求
 type UserGetBatchReq struct {
 	UserList []UserGetBatchReqItem `json:"user_list"`
 }
+
+// 批量获取粉丝信息结果
 type UserGetBatchResp struct {
 	UserInfoList []UserInfo `json:"user_info_list"`
 }
 
+// 批量获取粉丝信息
 func (m Mp) UserInfoGetBatch(req UserGetBatchReq) (res UserGetBatchResp, err error) {
 	if len(req.UserList) > 100 {
 		err = errors.New("最多支持一次拉取100条")
@@ -232,7 +246,7 @@ func (m Mp) UserInfoGetBatch(req UserGetBatchReq) (res UserGetBatchResp, err err
 	return
 }
 
-// 生成临时二维码
+// 创建临时二维码请求
 type shortQrCodeReq struct {
 	ExpireSeconds int    `json:"expire_seconds"`
 	ActionName    string `json:"action_name"`
@@ -248,6 +262,7 @@ type shortQrCode struct {
 	Url           string `json:"url"`
 }
 
+// 创建临时二维码
 func (m Mp) CreateShortQrCode(sceneId, secondsOut int) (rs shortQrCode, err error) {
 	var req shortQrCodeReq
 	req.ExpireSeconds = secondsOut
@@ -262,6 +277,7 @@ func (m Mp) CreateShortQrCode(sceneId, secondsOut int) (rs shortQrCode, err erro
 	return
 }
 
+// 创建临时文本参数二维码请求
 type shortQrStrCodeReq struct {
 	ExpireSeconds int    `json:"expire_seconds"`
 	ActionName    string `json:"action_name"`
@@ -272,6 +288,7 @@ type shortQrStrCodeReq struct {
 	} `json:"action_info"`
 }
 
+// 创建临时文本参数二维码
 func (m Mp) CreateShortQrStrCode(sceneStr string, secondsOut int) (rs shortQrCode, err error) {
 	var req shortQrStrCodeReq
 	req.ExpireSeconds = secondsOut
@@ -286,7 +303,7 @@ func (m Mp) CreateShortQrStrCode(sceneStr string, secondsOut int) (rs shortQrCod
 	return
 }
 
-// 验证公众号接口
+// 公众号消息请求验证参数
 type ValidateReq struct {
 	Signature    string `form:"signature" binding:"required"`
 	Timestamp    string `form:"timestamp" binding:"required"`
@@ -297,6 +314,7 @@ type ValidateReq struct {
 	MsgSignature string `form:"msg_signature"`
 }
 
+// 公众号消息请求验证
 func (m Mp) ValidateSignature(req ValidateReq) (err error) {
 	arr := []string{m.PrivateToken, req.Timestamp, req.Nonce}
 	sort.Strings(arr)
@@ -324,13 +342,14 @@ func (m Mp) UserInfo(openId string) (rs UserInfo, err error) {
 	return
 }
 
-// 客服账号 - 添加
+// 添加客服账号请求
 type KfAccountAddReq struct {
 	KfAccount string `json:"kf_account"`
 	Nickname  string `json:"nickname"`
 	Password  string `json:"password"`
 }
 
+// 客服账号 - 添加
 func (m Mp) KfAccountAdd(req KfAccountAddReq) (err error) {
 	api := fmt.Sprintf("https://api.weixin.qq.com/customservice/kfaccount/add?access_token=%v", m.AccessToken)
 	var buf = new(bytes.Buffer)
@@ -393,6 +412,7 @@ func (m Mp) KfAccountDel(req KfAccountAddReq) (err error) {
 	return
 }
 
+// 获取客服账号结果列表
 type KfListResp struct {
 	KfList []struct {
 		KfAccount    string `json:"kf_account"`
@@ -402,7 +422,7 @@ type KfListResp struct {
 	} `json:"kf_list"`
 }
 
-// 客服账号 - 删除
+// 客服账号 - 获取
 func (m Mp) KfList() (err error) {
 	api := fmt.Sprintf("https://api.weixin.qq.com/cgi-bin/customservice/getkflist?access_token=%v", m.AccessToken)
 	var buf = new(bytes.Buffer)
@@ -449,12 +469,13 @@ func (m Mp) SendMsg(openid, msgType string, content interface{}) (err error) {
 	return
 }
 
-// 发送模板消息
+// 发送模板消息结果
 type tpsMsgSendRes struct {
 	wxErr
 	MsgId int64 `json:"msgid"`
 }
 
+// 发送模板消息
 func (m Mp) SendTpsMsg(openid, tplId, path string, content interface{}) (rs tpsMsgSendRes, err error) {
 	api := fmt.Sprintf("https://api.weixin.qq.com/cgi-bin/message/template/send?access_token=%v", m.AccessToken)
 	data := make(H)
@@ -474,13 +495,14 @@ func (m Mp) SendTpsMsg(openid, tplId, path string, content interface{}) (rs tpsM
 	return
 }
 
-// 根据OpenID列表群发
+// 根据OpenID列表群发请求
 type massSendRes struct {
 	wxErr
 	MsgId     int64 `json:"msg_id"`
 	MsgDataId int64 `json:"msg_data_id"`
 }
 
+// 根据OpenID列表群发
 func (m Mp) MassSend(openIds []string, msgType string, content interface{}) (rs massSendRes, err error) {
 	api := fmt.Sprintf("https://api.weixin.qq.com/cgi-bin/message/mass/send?access_token=%v", m.AccessToken)
 	post := make(H)
@@ -497,7 +519,7 @@ func (m Mp) MassSend(openIds []string, msgType string, content interface{}) (rs 
 	return
 }
 
-// 小程序 登录凭证校验
+// 小程序 登录凭证校验结果
 type MpCode2SessionRes struct {
 	wxErr
 	OpenId     string `json:"openid"`
@@ -505,6 +527,7 @@ type MpCode2SessionRes struct {
 	UnionId    string `json:"unionid"`
 }
 
+// 小程序 登录凭证校验
 func (m Mp) MpCode2Session(code string) (rs MpCode2SessionRes, err error) {
 	api := fmt.Sprintf("https://api.weixin.qq.com/sns/jscode2session?appid=%v&secret=%v&js_code=%v"+
 		"&grant_type=authorization_code", m.AppId, m.AppSecret, code)
@@ -519,12 +542,14 @@ func (m Mp) MpCode2Session(code string) (rs MpCode2SessionRes, err error) {
 	return
 }
 
+// 上传媒体文件请求
 type mediaRes struct {
 	Type      string `json:"type"`
 	MediaId   string `json:"media_id"`
 	CreatedAt int64  `json:"created_at"`
 }
 
+// 上传媒体文件
 func (m Mp) Upload(f io.Reader, t string) (rs mediaRes, err error) {
 	ts := map[string]string{
 		"image": "jpg",
@@ -585,6 +610,7 @@ type MpMessage struct {
 	AppId        string  `xml:"-" json:"app_id"`
 }
 
+// 公众号消息解密
 func (msg *MpMessage) ShouldDecode(key string) (err error) {
 	if msg.Encrypt == "" {
 		// 没加密
@@ -607,12 +633,15 @@ func (msg *MpMessage) ShouldDecode(key string) (err error) {
 		return
 	}
 	// 读密文
-	raw, _ = base64.StdEncoding.DecodeString(msg.Encrypt)
-	if len(raw) < aes.BlockSize {
-		return errors.New("")
+	raw, err = base64.StdEncoding.DecodeString(msg.Encrypt)
+	if err != nil {
+		return
+	}
+	if len(raw) < block.BlockSize() {
+		return errors.New("无效密文")
 	}
 	// 解密
-	cipher.NewCBCDecrypter(block, raw[:aes.BlockSize]).CryptBlocks(raw, raw)
+	cipher.NewCBCDecrypter(block, raw[:block.BlockSize()]).CryptBlocks(raw, raw)
 
 	// 微信格式解码 AES_Encrypt[random(16B) + msg_len(4B) + rawXMLMsg + appId]
 	_pad := int(raw[len(raw)-1])
@@ -686,6 +715,7 @@ func (m *Mp) parse(raw []byte, any interface{}) (err error) {
 	}
 }
 
+// 长链接转短链接
 func (m *Mp) ShortUrl(lUrl string) (sUrl string, err error) {
 	res, err := http.Post(
 		fmt.Sprintf("https://api.weixin.qq.com/cgi-bin/shorturl?access_token=%v", m.AccessToken),

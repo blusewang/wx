@@ -26,7 +26,7 @@ type Mch struct {
 	MchRSAPublicKey []byte
 }
 
-// 微信下单
+// 微信下单请求
 type OrderReq struct {
 	XMLName        xml.Name `xml:"xml"`
 	AppId          string   `xml:"appid"`
@@ -45,6 +45,7 @@ type OrderReq struct {
 	ProfitSharing  string   `xml:"profit_sharing"`
 }
 
+// 微信下单结果
 type OrderRes struct {
 	mchErr
 	AppId     string `xml:"appid"`
@@ -60,6 +61,7 @@ func (or OrderRes) String() string {
 	return string(raw)
 }
 
+// 微信下单
 func (m Mch) Order(req OrderReq) (rs OrderRes, err error) {
 	api := "https://api.mch.weixin.qq.com/pay/unifiedorder"
 	if req.ProfitSharing == "" {
@@ -105,7 +107,7 @@ func (m Mch) OrderSign4MP(or OrderRes) H {
 	return data
 }
 
-// 验证回调签名
+// 支付成功通知
 type PayNotify struct {
 	ReturnCode         string `xml:"return_code"`
 	ReturnMsg          string `xml:"return_msg"`
@@ -141,6 +143,7 @@ type NotifyRes struct {
 	ReturnMsg  string   `xml:"return_msg"`
 }
 
+// 验证支付成功通知
 func (m Mch) PayNotify(pn PayNotify) bool {
 	if pn.ReturnCode != "SUCCESS" || pn.Sign == "" {
 		return false
@@ -152,7 +155,7 @@ func (m Mch) PayNotify(pn PayNotify) bool {
 	return true
 }
 
-// 请求单次分账
+// 单次分账结果
 type ProfitSharingReq struct {
 	XMLName       xml.Name                   `xml:"xml"`
 	MchId         string                     `xml:"mch_id"`
@@ -165,6 +168,7 @@ type ProfitSharingReq struct {
 	ReceiverSlice []ProfitSharingReqReceiver `xml:"-"`
 }
 
+// 分账结果中的接收者
 type ProfitSharingReqReceiver struct {
 	Type        string `json:"type"`
 	Account     string `json:"account"`
@@ -172,6 +176,7 @@ type ProfitSharingReqReceiver struct {
 	Description string `json:"description"`
 }
 
+// 单次分账结果
 type ProfitSharingRes struct {
 	mchErr
 	MchId         string `xml:"mch_id"`
@@ -188,6 +193,7 @@ func (r ProfitSharingRes) String() string {
 	return string(raw)
 }
 
+// 请求单次分账
 func (m Mch) ProfitSharing(req ProfitSharingReq) (rs ProfitSharingRes, err error) {
 	if err = m.prepareCert(); err != nil {
 		return
@@ -219,7 +225,7 @@ func (m Mch) ProfitSharing(req ProfitSharingReq) (rs ProfitSharingRes, err error
 	return
 }
 
-// 完结分账
+// 结束分账请求
 type ProfitSharingFinishReq struct {
 	XMLName       xml.Name `xml:"xml"`
 	MchId         string   `xml:"mch_id"`
@@ -231,6 +237,7 @@ type ProfitSharingFinishReq struct {
 	Description   string   `xml:"description"`
 }
 
+// 确定分账
 func (m Mch) ProfitSharingFinish(req ProfitSharingFinishReq) (rs ProfitSharingRes, err error) {
 	if err = m.prepareCert(); err != nil {
 		return
@@ -252,7 +259,7 @@ func (m Mch) ProfitSharingFinish(req ProfitSharingFinishReq) (rs ProfitSharingRe
 	return
 }
 
-// 企业付款到银行卡
+// 企业付款到银行卡请求
 type BankPayReq struct {
 	XMLName        xml.Name `xml:"xml"`
 	MchId          string   `xml:"mch_id"`
@@ -271,6 +278,7 @@ func (bpr BankPayReq) String() string {
 	return string(raw)
 }
 
+// 企业付款到银行卡结果
 type BankPayRes struct {
 	mchErr
 	PartnerTradeNo string `xml:"partner_trade_no"`
@@ -283,6 +291,8 @@ func (bp BankPayRes) String() string {
 	raw, _ := json.Marshal(bp)
 	return string(raw)
 }
+
+// 企业付款到银行卡预加密实名与银行卡号
 func (m Mch) BankPayReqEncrypt(bpr *BankPayReq) (err error) {
 	bpr.EncBankNo, err = rsaEncrypt(m.MchRSAPublicKey, bpr.EncBankNo)
 	if err != nil {
@@ -291,6 +301,8 @@ func (m Mch) BankPayReqEncrypt(bpr *BankPayReq) (err error) {
 	bpr.EncTrueName, err = rsaEncrypt(m.MchRSAPublicKey, bpr.EncTrueName)
 	return
 }
+
+// 企业付款到银行卡
 func (m Mch) BankPay(bpr BankPayReq) (rs BankPayRes, err error) {
 	if err = m.prepareCert(); err != nil {
 		return
@@ -309,7 +321,7 @@ func (m Mch) BankPay(bpr BankPayReq) (rs BankPayRes, err error) {
 	return
 }
 
-// 用于对商户企业付款到银行卡操作进行结果查询
+// 付款到银行卡结果查询请求
 type BankQueryRes struct {
 	mchErr
 	PartnerTradeNo string `xml:"partner_trade_no"`
@@ -326,6 +338,8 @@ func (bp BankQueryRes) String() string {
 	raw, _ := json.Marshal(bp)
 	return string(raw)
 }
+
+// 付款到银行卡结果查询
 func (m Mch) BankQuery(tradeNo string) (rs BankQueryRes, err error) {
 	if err = m.prepareCert(); err != nil {
 		return
@@ -357,7 +371,7 @@ func (m Mch) BankQuery(tradeNo string) (rs BankQueryRes, err error) {
 	return
 }
 
-// 发红包
+// 发红包请求
 type RedPackReq struct {
 	XMLName     xml.Name `xml:"xml"`
 	NonceStr    string   `xml:"nonce_str"`
@@ -375,6 +389,7 @@ type RedPackReq struct {
 	Remark      string   `xml:"remark"`
 }
 
+// 发红包结果
 type RedPackSendRes struct {
 	mchErr
 	MchBillNo   string `xml:"mch_billno"`
@@ -389,6 +404,8 @@ func (res RedPackSendRes) String() string {
 	raw, _ := json.Marshal(res)
 	return string(raw)
 }
+
+// 发红包
 func (m Mch) SendRedPack(req RedPackReq) (rs RedPackSendRes, err error) {
 	err = m.prepareCert()
 	if err != nil {
@@ -410,7 +427,7 @@ func (m Mch) SendRedPack(req RedPackReq) (rs RedPackSendRes, err error) {
 	return
 }
 
-// 查红包状态
+// 红包状态查询请求
 type RedPackQueryReq struct {
 	XMLName   xml.Name `xml:"xml"`
 	NonceStr  string   `xml:"nonce_str"`
@@ -420,6 +437,8 @@ type RedPackQueryReq struct {
 	AppId     string   `xml:"appid"`
 	BillType  string   `xml:"bill_type"`
 }
+
+// 红包状态查询结果
 type RedPackQueryRes struct {
 	mchErr
 	MchBillNo    string  `xml:"mch_billno"`
@@ -448,6 +467,7 @@ func (res RedPackQueryRes) String() string {
 	return string(raw)
 }
 
+// 红包状态查询
 func (m Mch) RedPackQuery(req RedPackQueryReq) (rs RedPackQueryRes, err error) {
 	if err = m.prepareCert(); err != nil {
 		return
@@ -468,7 +488,7 @@ func (m Mch) RedPackQuery(req RedPackQueryReq) (rs RedPackQueryRes, err error) {
 	return
 }
 
-// 企业付款至零钱
+// 企业付款至零钱请求
 type PayReq struct {
 	XMLName        xml.Name `xml:"xml"`
 	MchAppId       string   `xml:"mch_appid"`
@@ -483,7 +503,9 @@ type PayReq struct {
 	Desc           string   `xml:"desc"`
 	SpBillCreateIp string   `xml:"spbill_create_ip"`
 }
-type payRes struct {
+
+// 企业付款至零钱结果
+type PayRes struct {
 	mchErr
 	MchAppId       string `xml:"mch_appid"`
 	MchId          string `xml:"mchid"`
@@ -493,11 +515,13 @@ type payRes struct {
 	PaymentTime    string `xml:"payment_time"`
 }
 
-func (res payRes) String() string {
+func (res PayRes) String() string {
 	raw, _ := json.Marshal(res)
 	return string(raw)
 }
-func (m Mch) Pay(req PayReq) (rs payRes, err error) {
+
+// 企业付款至零钱
+func (m Mch) Pay(req PayReq) (rs PayRes, err error) {
 	err = m.prepareCert()
 	if err != nil {
 		return
@@ -518,7 +542,7 @@ func (m Mch) Pay(req PayReq) (rs payRes, err error) {
 	return
 }
 
-// 退款
+// 退款请求
 type RefundReq struct {
 	XMLName       xml.Name `xml:"xml"`
 	AppId         string   `xml:"appid"`
@@ -534,7 +558,8 @@ type RefundReq struct {
 	NotifyUrl     string   `xml:"notify_url"`
 }
 
-type refundRes struct {
+// 退款结果
+type RefundRes struct {
 	mchErr
 	AppId         string `xml:"appid"`
 	MchId         string `xml:"mch_id"`
@@ -549,7 +574,8 @@ type refundRes struct {
 	CashFee       int64  `xml:"cash_fee"`
 }
 
-func (m Mch) Refund(req RefundReq) (rs refundRes, err error) {
+// 退款
+func (m Mch) Refund(req RefundReq) (rs RefundRes, err error) {
 	if err = m.prepareCert(); err != nil {
 		return
 	}
@@ -571,7 +597,7 @@ func (m Mch) Refund(req RefundReq) (rs refundRes, err error) {
 	return
 }
 
-// 获取RSA公钥API获取RSA公钥
+// 获取RSA公钥API获取RSA公钥请求
 type BankRSARes struct {
 	ReturnCode string `xml:"return_code"`
 	ReturnMsg  string `xml:"return_msg"`
@@ -584,6 +610,8 @@ func (bp BankRSARes) String() string {
 	raw, _ := json.Marshal(bp)
 	return string(raw)
 }
+
+// 获取RSA公钥API获取RSA公钥
 func (m Mch) GetBankRSAPublicKey() (rs BankRSARes, err error) {
 	if err = m.prepareCert(); err != nil {
 		return
