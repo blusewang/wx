@@ -219,6 +219,39 @@ func (m Mch) ProfitSharing(req ProfitSharingReq) (rs ProfitSharingRes, err error
 	return
 }
 
+// 完结分账
+type ProfitSharingFinishReq struct {
+	XMLName       xml.Name `xml:"xml"`
+	MchId         string   `xml:"mch_id"`
+	AppId         string   `xml:"appid"`
+	NonceStr      string   `xml:"nonce_str"`
+	Sign          string   `xml:"sign"`
+	TransactionId string   `xml:"transaction_id"`
+	OutOrderNo    string   `xml:"out_order_no"`
+	Description   string   `xml:"description"`
+}
+
+func (m Mch) ProfitSharingFinish(req ProfitSharingFinishReq) (rs ProfitSharingRes, err error) {
+	if err = m.prepareCert(); err != nil {
+		return
+	}
+	req.MchId = m.MchId
+	req.Sign = m.payHmacSha256Sign(req)
+
+	buf := new(bytes.Buffer)
+	if err = xml.NewEncoder(buf).Encode(req); err != nil {
+		return
+	}
+
+	api := "https://api.mch.weixin.qq.com/secapi/pay/profitsharingfinish"
+	body, err := postStreamWithCert(*m.mchCert, api, buf)
+	if err != nil {
+		return
+	}
+	err = xml.NewDecoder(body).Decode(&rs)
+	return
+}
+
 // 企业付款到银行卡
 type BankPayReq struct {
 	XMLName        xml.Name `xml:"xml"`
@@ -374,6 +407,64 @@ func (m Mch) SendRedPack(req RedPackReq) (rs RedPackSendRes, err error) {
 		return
 	}
 	err = parseXml(raw, &rs)
+	return
+}
+
+// 查红包状态
+type RedPackQueryReq struct {
+	XMLName   xml.Name `xml:"xml"`
+	NonceStr  string   `xml:"nonce_str"`
+	Sign      string   `xml:"sign"`
+	MchBillNo string   `xml:"mch_billno"`
+	MchId     string   `xml:"mch_id"`
+	AppId     string   `xml:"appid"`
+	BillType  string   `xml:"bill_type"`
+}
+type RedPackQueryRes struct {
+	mchErr
+	MchBillNo    string  `xml:"mch_billno"`
+	MchId        string  `xml:"mch_id"`
+	Status       string  `xml:"status"`
+	SendType     string  `xml:"send_type"`
+	HbType       string  `xml:"hb_type"`
+	Reason       *string `xml:"reason"`
+	SendTime     string  `xml:"send_time"`
+	RefundTime   *string `xml:"refund_time"`
+	RefundAmount *int    `xml:"refund_amount"`
+	Wishing      *string `xml:"wishing"`
+	Remark       *string `xml:"remark"`
+	ActName      *string `xml:"act_name"`
+	HbList       []struct {
+		HbInfo []struct {
+			OpenId  string `xml:"openid"`
+			Amount  int    `xml:"amount"`
+			RcvTime string `xml:"rcv_time"`
+		} `xml:"hbinfo"`
+	} `xml:"hblist"`
+}
+
+func (res RedPackQueryRes) String() string {
+	raw, _ := json.Marshal(res)
+	return string(raw)
+}
+
+func (m Mch) RedPackQuery(req RedPackQueryReq) (rs RedPackQueryRes, err error) {
+	if err = m.prepareCert(); err != nil {
+		return
+	}
+	api := "https://api.mch.weixin.qq.com/mmpaymkttransfers/gethbinfo"
+	req.MchId = m.MchId
+	req.NonceStr = NewRandStr(32)
+	req.Sign = m.sign(req)
+	var buf = new(bytes.Buffer)
+	if err = xml.NewEncoder(buf).Encode(req); err != nil {
+		return
+	}
+	resp, err := postWithCert2(*m.mchCert, api, buf)
+	if err != nil {
+		return
+	}
+	err = xml.NewDecoder(resp.Body).Decode(&rs)
 	return
 }
 

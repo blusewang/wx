@@ -100,6 +100,23 @@ func postWithCert(cert tls.Certificate, api string, body []byte) (raw []byte, er
 	return
 }
 
+func postWithCert2(cert tls.Certificate, api string, body io.Reader) (resp *http.Response, err error) {
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				Certificates: []tls.Certificate{cert},
+			},
+			DisableCompression: true,
+		},
+	}
+	req, err := http.NewRequest("POST", api, body)
+	if err != nil {
+		return
+	}
+	resp, err = client.Do(req)
+	return
+}
+
 func postStreamWithCert(cert tls.Certificate, api string, data io.Reader) (body io.ReadCloser, err error) {
 	client := &http.Client{
 		Transport: &http.Transport{
@@ -152,8 +169,16 @@ func SafeString(str string, length int) string {
 	runs := []rune(str)
 	// 单字符长度高于3的，不是一般的utf8字符，剔除掉
 	for k, v := range runs {
-		if len([]byte(string(v))) > 3 || len([]byte(string(v))) == 2 {
-			runs[k] = '*'
+		switch len([]byte(string(v))) {
+		case 1:
+			// 全部放行
+		case 3:
+			if v < 19968 || v > 40869 {
+				// 只支持中文
+				runs[k] = 'x'
+			}
+		default:
+			runs[k] = 'x'
 		}
 	}
 	str = string(runs)
@@ -397,7 +422,7 @@ func aesDecryptMsg(ciphertext []byte, aesKey []byte) (random, rawXMLMsg, appID [
 	if err != nil {
 		panic(err)
 	}
-	mode := cipher.NewCBCDecrypter(block, aesKey[:16])
+	mode := cipher.NewCBCDecrypter(block, aesKey[:block.BlockSize()])
 	mode.CryptBlocks(plaintext, ciphertext)
 
 	// PKCS#7 去除补位

@@ -2,8 +2,13 @@ package wxApi
 
 import (
 	"bytes"
+	"crypto/aes"
+	"crypto/cipher"
 	"crypto/sha1"
+	"encoding/base64"
+	"encoding/binary"
 	"encoding/json"
+	"encoding/xml"
 	"errors"
 	"fmt"
 	"io"
@@ -26,6 +31,11 @@ type Mp struct {
 	PrivateToken   string
 	EncodingAESKey string
 	Ticket         string
+}
+
+type MpBaseResp struct {
+	ErrCode int64  `json:"errcode"`
+	ErrMsg  string `json:"errmsg"`
 }
 
 // 获取access_token
@@ -77,7 +87,8 @@ type ticket struct {
 }
 
 func (m *Mp) GetTicket(ticketType string) (rs ticket, err error) {
-	api := fmt.Sprintf("https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=%v&type=%v", m.AccessToken, ticketType)
+	api := fmt.Sprintf("https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=%v&type=%v",
+		m.AccessToken, ticketType)
 	raw, err := get(api)
 	if err != nil {
 		return
@@ -156,7 +167,8 @@ func (ui UserInfo) String() string {
 	return string(raw)
 }
 func (m Mp) AppUserInfo(at jsAccessToken) (rs UserInfo, err error) {
-	api := fmt.Sprintf("https://api.weixin.qq.com/sns/userinfo?access_token=%v&openid=%v&lang=zh_CN", at.AccessToken, at.Openid)
+	api := fmt.Sprintf("https://api.weixin.qq.com/sns/userinfo?access_token=%v&openid=%v&lang=zh_CN",
+		at.AccessToken, at.Openid)
 	raw, err := get(api)
 	if err != nil {
 		return
@@ -165,6 +177,58 @@ func (m Mp) AppUserInfo(at jsAccessToken) (rs UserInfo, err error) {
 	if err != nil {
 		log.Println("GET", api, string(raw))
 	}
+	return
+}
+
+// 获取用户列表
+type UsersSegment struct {
+	Total int64 `json:"total"`
+	Count int64 `json:"count"`
+	Data  struct {
+		OpenId []string `json:"openid"`
+	} `json:"data"`
+	NextOpenId string `json:"next_openid"`
+}
+
+func (m Mp) UserGet(nextOpenId string) (us UsersSegment, err error) {
+	api := fmt.Sprintf("https://api.weixin.qq.com/cgi-bin/user/get?access_token=%v&next_openid=%v",
+		m.AccessToken, nextOpenId)
+	resp, err := http.Get(api)
+	if err != nil {
+		return
+	}
+	err = json.NewDecoder(resp.Body).Decode(&us)
+	return
+}
+
+type UserGetBatchReqItem struct {
+	Openid string `json:"openid"`
+	Lang   string `json:"lang"`
+}
+type UserGetBatchReq struct {
+	UserList []UserGetBatchReqItem `json:"user_list"`
+}
+type UserGetBatchResp struct {
+	UserInfoList []UserInfo `json:"user_info_list"`
+}
+
+func (m Mp) UserInfoGetBatch(req UserGetBatchReq) (res UserGetBatchResp, err error) {
+	if len(req.UserList) > 100 {
+		err = errors.New("最多支持一次拉取100条")
+		return
+	}
+
+	var buf = new(bytes.Buffer)
+	if err = json.NewEncoder(buf).Encode(req); err != nil {
+		return
+	}
+
+	api := fmt.Sprintf("https://api.weixin.qq.com/cgi-bin/user/info/batchget?access_token=%v", m.AccessToken)
+	resp, err := http.Post(api, contentJson, buf)
+	if err != nil {
+		return
+	}
+	err = json.NewDecoder(resp.Body).Decode(&res)
 	return
 }
 
@@ -223,13 +287,23 @@ func (m Mp) CreateShortQrStrCode(sceneStr string, secondsOut int) (rs shortQrCod
 }
 
 // 验证公众号接口
-func (m Mp) ValidateSignature(signature string, timestamp string, nonce string) (err error) {
-	arr := []string{m.PrivateToken, timestamp, nonce}
+type ValidateReq struct {
+	Signature    string `form:"signature" binding:"required"`
+	Timestamp    string `form:"timestamp" binding:"required"`
+	Nonce        string `form:"nonce" binding:"required"`
+	EchoStr      string `form:"echostr"`
+	OpenId       string `form:"openid"`
+	EncryptType  string `form:"encrypt_type"`
+	MsgSignature string `form:"msg_signature"`
+}
+
+func (m Mp) ValidateSignature(req ValidateReq) (err error) {
+	arr := []string{m.PrivateToken, req.Timestamp, req.Nonce}
 	sort.Strings(arr)
 
 	sign := fmt.Sprintf("%x", sha1.Sum([]byte(strings.Join(arr, ""))))
 
-	if signature != sign {
+	if req.Signature != sign {
 		err = errors.New("签名验证失败")
 	}
 	return
@@ -246,6 +320,105 @@ func (m Mp) UserInfo(openId string) (rs UserInfo, err error) {
 	err = m.parse(raw, &rs)
 	if err != nil {
 		log.Println("GET", api, string(raw))
+	}
+	return
+}
+
+// 客服账号 - 添加
+type KfAccountAddReq struct {
+	KfAccount string `json:"kf_account"`
+	Nickname  string `json:"nickname"`
+	Password  string `json:"password"`
+}
+
+func (m Mp) KfAccountAdd(req KfAccountAddReq) (err error) {
+	api := fmt.Sprintf("https://api.weixin.qq.com/customservice/kfaccount/add?access_token=%v", m.AccessToken)
+	var buf = new(bytes.Buffer)
+	if err = json.NewEncoder(buf).Encode(buf); err != nil {
+		return
+	}
+	resp, err := http.Post(api, contentJson, buf)
+	if err != nil {
+		return
+	}
+	var rs MpBaseResp
+	if err = json.NewDecoder(resp.Body).Decode(&rs); err != nil {
+		return
+	}
+	if rs.ErrCode != 0 {
+		return errors.New(rs.ErrMsg)
+	}
+	return
+}
+
+// 客服账号 - 修改
+func (m Mp) KfAccountUpdate(req KfAccountAddReq) (err error) {
+	api := fmt.Sprintf("https://api.weixin.qq.com/customservice/kfaccount/update?access_token=%v", m.AccessToken)
+	var buf = new(bytes.Buffer)
+	if err = json.NewEncoder(buf).Encode(buf); err != nil {
+		return
+	}
+	resp, err := http.Post(api, contentJson, buf)
+	if err != nil {
+		return
+	}
+	var rs MpBaseResp
+	if err = json.NewDecoder(resp.Body).Decode(&rs); err != nil {
+		return
+	}
+	if rs.ErrCode != 0 {
+		return errors.New(rs.ErrMsg)
+	}
+	return
+}
+
+// 客服账号 - 删除
+func (m Mp) KfAccountDel(req KfAccountAddReq) (err error) {
+	api := fmt.Sprintf("https://api.weixin.qq.com/customservice/kfaccount/del?access_token=%v", m.AccessToken)
+	var buf = new(bytes.Buffer)
+	if err = json.NewEncoder(buf).Encode(buf); err != nil {
+		return
+	}
+	resp, err := http.Post(api, contentJson, buf)
+	if err != nil {
+		return
+	}
+	var rs MpBaseResp
+	if err = json.NewDecoder(resp.Body).Decode(&rs); err != nil {
+		return
+	}
+	if rs.ErrCode != 0 {
+		return errors.New(rs.ErrMsg)
+	}
+	return
+}
+
+type KfListResp struct {
+	KfList []struct {
+		KfAccount    string `json:"kf_account"`
+		KfNick       string `json:"kf_nick"`
+		KfId         string `json:"kf_id"`
+		KfHeadImgUrl string `json:"kf_headimgurl"`
+	} `json:"kf_list"`
+}
+
+// 客服账号 - 删除
+func (m Mp) KfList() (err error) {
+	api := fmt.Sprintf("https://api.weixin.qq.com/cgi-bin/customservice/getkflist?access_token=%v", m.AccessToken)
+	var buf = new(bytes.Buffer)
+	if err = json.NewEncoder(buf).Encode(buf); err != nil {
+		return
+	}
+	resp, err := http.Post(api, contentJson, buf)
+	if err != nil {
+		return
+	}
+	var rs MpBaseResp
+	if err = json.NewDecoder(resp.Body).Decode(&rs); err != nil {
+		return
+	}
+	if rs.ErrCode != 0 {
+		return errors.New(rs.ErrMsg)
 	}
 	return
 }
@@ -298,9 +471,6 @@ func (m Mp) SendTpsMsg(openid, tplId, path string, content interface{}) (rs tpsM
 		return
 	}
 	err = m.parse(raw, &rs)
-	if err != nil {
-		log.Println("POST", api, data, string(raw))
-	}
 	return
 }
 
@@ -355,7 +525,7 @@ type mediaRes struct {
 	CreatedAt int64  `json:"created_at"`
 }
 
-func (m Mp) Upload(raw []byte, t string) (rs mediaRes, err error) {
+func (m Mp) Upload(f io.Reader, t string) (rs mediaRes, err error) {
 	ts := map[string]string{
 		"image": "jpg",
 		"voice": "mp3",
@@ -369,7 +539,7 @@ func (m Mp) Upload(raw []byte, t string) (rs mediaRes, err error) {
 	if err != nil {
 		return
 	}
-	if _, err = wf.Write(raw); err != nil {
+	if _, err = io.Copy(wf, f); err != nil {
 		return
 	}
 	w.Close()
@@ -378,6 +548,82 @@ func (m Mp) Upload(raw []byte, t string) (rs mediaRes, err error) {
 		return
 	}
 	err = json.NewDecoder(res.Body).Decode(&rs)
+	return
+}
+
+// 公众号消息
+type MpMessage struct {
+	ToUserName   string  `xml:"ToUserName" json:"to_user_name"`
+	Encrypt      string  `xml:"Encrypt" json:"encrypt"`
+	FromUserName string  `xml:"FromUserName" json:"from_user_name"`
+	CreateTime   int64   `xml:"CreateTime" json:"create_time"`
+	MsgType      string  `xml:"MsgType" json:"msg_type"`
+	Content      string  `xml:"Content" json:"content"`
+	MsgId        int64   `xml:"msg_id" json:"msg_id"`
+	PicUrl       string  `xml:"PicUrl" json:"pic_url"`
+	MediaId      string  `xml:"MediaId" json:"media_id"`
+	Format       string  `xml:"Format" json:"format"`
+	Recognition  string  `xml:"Recognition" json:"recognition"`
+	ThumbMediaId string  `xml:"ThumbMediaId" json:"thumb_media_id"`
+	LocationX    float64 `xml:"Location_X" json:"location_x"`
+	LocationY    float64 `xml:"Location_Y" json:"location_y"`
+	Scale        int64   `xml:"Scale" json:"scale"`
+	Label        string  `xml:"Label" json:"label"`
+	Title        string  `xml:"Title" json:"title"`
+	Description  string  `xml:"Description" json:"description"`
+	Url          string  `xml:"Url" json:"url"`
+	Event        string  `xml:"Event" json:"event"`
+	EventKey     string  `xml:"EventKey" json:"event_key"`
+	Ticket       string  `xml:"Ticket" json:"ticket"`
+	Latitude     float64 `xml:"Latitude" json:"latitude"`
+	Longitude    float64 `xml:"Longitude" json:"longitude"`
+	Precision    float64 `xml:"Precision" json:"precision"`
+	SessionFrom  string  `xml:"SessionFrom" json:"session_from"`
+	Status       string  `xml:"status" json:"status"`
+	MsgID        int64   `xml:"MsgID" json:"msg_id"`
+	SentCount    int64   `xml:"SentCount" json:"sent_count"`
+	AppId        string  `xml:"-" json:"app_id"`
+}
+
+func (msg *MpMessage) ShouldDecode(key string) (err error) {
+	if msg.Encrypt == "" {
+		// 没加密
+		return
+	}
+	if msg.FromUserName != "" {
+		// 解密过了
+		return
+	}
+
+	// 读密钥
+	raw, err := base64.StdEncoding.DecodeString(key + "=")
+	if err != nil {
+		return
+	}
+
+	// 生成密钥
+	block, err := aes.NewCipher(raw)
+	if err != nil {
+		return
+	}
+	// 读密文
+	raw, _ = base64.StdEncoding.DecodeString(msg.Encrypt)
+	if len(raw) < aes.BlockSize {
+		return errors.New("")
+	}
+	// 解密
+	cipher.NewCBCDecrypter(block, raw[:aes.BlockSize]).CryptBlocks(raw, raw)
+
+	// 微信格式解码 AES_Encrypt[random(16B) + msg_len(4B) + rawXMLMsg + appId]
+	_pad := int(raw[len(raw)-1])
+	_length := binary.BigEndian.Uint32(raw[16:20])
+	raw = raw[:len(raw)-_pad]
+
+	// 取出格式化数据
+	if err = xml.Unmarshal(raw[20:_length+20], &msg); err != nil {
+		return
+	}
+	msg.AppId = string(raw[_length+20:])
 	return
 }
 
@@ -443,15 +689,14 @@ func (m *Mp) parse(raw []byte, any interface{}) (err error) {
 func (m *Mp) ShortUrl(lUrl string) (sUrl string, err error) {
 	res, err := http.Post(
 		fmt.Sprintf("https://api.weixin.qq.com/cgi-bin/shorturl?access_token=%v", m.AccessToken),
-		"application/json",
+		contentJson,
 		strings.NewReader(fmt.Sprintf(`{"action":"long2short","long_url":"%v"}`, lUrl)),
 	)
 	if err != nil {
 		return
 	}
 	var rs struct {
-		ErrCode  int    `json:"errcode"`
-		ErrMsg   string `json:"errmsg"`
+		MpBaseResp
 		ShortUrl string `json:"short_url"`
 	}
 	if err = json.NewDecoder(res.Body).Decode(&rs); err != nil {
