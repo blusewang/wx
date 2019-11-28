@@ -578,6 +578,11 @@ type MpMessage struct {
 	Latitude     float64 `xml:"Latitude" json:"latitude"`
 	Longitude    float64 `xml:"Longitude" json:"longitude"`
 	Precision    float64 `xml:"Precision" json:"precision"`
+	SessionFrom  string  `xml:"SessionFrom" json:"session_from"`
+	Status       string  `xml:"status" json:"status"`
+	MsgID        int64   `xml:"MsgID" json:"msg_id"`
+	SentCount    int64   `xml:"SentCount" json:"sent_count"`
+	AppId        string  `xml:"-" json:"app_id"`
 }
 
 func (msg *MpMessage) ShouldDecode(key string) (err error) {
@@ -590,24 +595,35 @@ func (msg *MpMessage) ShouldDecode(key string) (err error) {
 		return
 	}
 
+	// 读密钥
 	raw, err := base64.StdEncoding.DecodeString(key + "=")
 	if err != nil {
 		return
 	}
+
+	// 生成密钥
 	block, err := aes.NewCipher(raw)
 	if err != nil {
 		return
 	}
+	// 读密文
 	raw, _ = base64.StdEncoding.DecodeString(msg.Encrypt)
 	if len(raw) < aes.BlockSize {
 		return errors.New("")
 	}
-	raw = raw[aes.BlockSize:]
+	// 解密
 	cipher.NewCBCDecrypter(block, raw[:aes.BlockSize]).CryptBlocks(raw, raw)
-	_length := binary.BigEndian.Uint32(raw[:4])
-	if err = xml.Unmarshal(raw[4:_length+4], &msg); err != nil {
+
+	// 微信格式解码 AES_Encrypt[random(16B) + msg_len(4B) + rawXMLMsg + appId]
+	_pad := int(raw[len(raw)-1])
+	_length := binary.BigEndian.Uint32(raw[16:20])
+	raw = raw[:len(raw)-_pad]
+
+	// 取出格式化数据
+	if err = xml.Unmarshal(raw[20:_length+20], &msg); err != nil {
 		return
 	}
+	msg.AppId = string(raw[_length+20:])
 	return
 }
 
