@@ -415,15 +415,17 @@ func (m Mch) SendRedPack(req RedPackReq) (rs RedPackSendRes, err error) {
 	req.MchId = m.MchId
 	req.NonceStr = NewRandStr(32)
 	req.Sign = m.sign(req)
-	raw, err := xml.Marshal(req)
+	var buf = new(bytes.Buffer)
+	if err = xml.NewEncoder(buf).Encode(req); err != nil {
+		return
+	}
+	resp, err := postWithCert(*m.mchCert, api, buf)
 	if err != nil {
 		return
 	}
-	raw, err = postWithCert(*m.mchCert, api, raw)
-	if err != nil {
+	if err = xml.NewDecoder(resp.Body).Decode(&rs); err != nil {
 		return
 	}
-	err = parseXml(raw, &rs)
 	return
 }
 
@@ -480,7 +482,7 @@ func (m Mch) RedPackQuery(req RedPackQueryReq) (rs RedPackQueryRes, err error) {
 	if err = xml.NewEncoder(buf).Encode(req); err != nil {
 		return
 	}
-	resp, err := postWithCert2(*m.mchCert, api, buf)
+	resp, err := postWithCert(*m.mchCert, api, buf)
 	if err != nil {
 		return
 	}
@@ -530,15 +532,18 @@ func (m Mch) Pay(req PayReq) (rs PayRes, err error) {
 	req.MchId = m.MchId
 	req.NonceStr = NewRandStr(32)
 	req.Sign = m.sign(req)
-	raw, err := xml.Marshal(req)
+
+	var buf = new(bytes.Buffer)
+	if err = xml.NewEncoder(buf).Encode(req); err != nil {
+		return
+	}
+	resp, err := postWithCert(*m.mchCert, api, buf)
 	if err != nil {
 		return
 	}
-	raw, err = postWithCert(*m.mchCert, api, raw)
-	if err != nil {
+	if err = xml.NewDecoder(resp.Body).Decode(&rs); err != nil {
 		return
 	}
-	err = parseXml(raw, &rs)
 	return
 }
 

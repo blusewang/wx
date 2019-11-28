@@ -12,11 +12,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"mime/multipart"
 	"net/http"
-	"reflect"
 	"sort"
 	"strings"
 	"time"
@@ -654,51 +652,6 @@ func (msg *MpMessage) ShouldDecode(key string) (err error) {
 	}
 	msg.AppId = string(raw[_length+20:])
 	return
-}
-
-// 公众号消息与事件的分发
-func (m Mp) HandleMsg(msg io.ReadCloser, handler interface{}) (err error) {
-	// 读取
-	raw, err := ioutil.ReadAll(msg)
-	if err != nil {
-		return err
-	}
-	// 转换
-	data := XmlToMap(string(raw), true)
-
-	// 按需解密
-	encrypt, _ := data["Encrypt"].(string)
-	_, raw, err = decryptMsg(m.AppId, encrypt, m.EncodingAESKey)
-	if err != nil {
-		return err
-	}
-	data = XmlToMap(string(raw), true)
-
-	// 判断数据项
-	if data["MsgType"] == nil || data["FromUserName"] == nil {
-		return errors.New("不明来源")
-	}
-
-	// 按数据类型组合处理方法名
-	var method string
-	if reflect.TypeOf(data["MsgType"]).String() == "string" {
-		msgType, _ := data["MsgType"].(string)
-		event, _ := data["Event"].(string)
-		method = strings.Title(strings.ToLower(msgType))
-		if method == "Event" && data["Event"] != nil && reflect.TypeOf(data["Event"]).String() == "string" {
-			method += strings.Title(strings.ToLower(event))
-		}
-	}
-
-	// 动态调用方法处理
-	action := reflect.ValueOf(handler).MethodByName(method)
-	if !action.IsValid() {
-		return nil
-	}
-
-	go action.Call([]reflect.Value{reflect.ValueOf(data)})
-
-	return nil
 }
 
 // 公众号消息与事件的分发
