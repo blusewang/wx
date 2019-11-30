@@ -244,60 +244,38 @@ func (m Mp) UserInfoGetBatch(req UserGetBatchReq) (res UserGetBatchResp, err err
 	return
 }
 
-// 创建临时二维码请求
-type shortQrCodeReq struct {
-	ExpireSeconds int    `json:"expire_seconds"`
+// 创建二维码请求
+type QrReq struct {
+	ExpireSeconds int64  `json:"expire_seconds"`
 	ActionName    string `json:"action_name"`
 	ActionInfo    struct {
 		Scene struct {
-			SceneId int `json:"scene_id"`
-		} `json:"scene"`
-	} `json:"action_info"`
-}
-type shortQrCode struct {
-	Ticket        string `json:"ticket"`
-	ExpireSeconds int    `json:"expire_seconds"`
-	Url           string `json:"url"`
-}
-
-// 创建临时二维码
-func (m Mp) CreateShortQrCode(sceneId, secondsOut int) (rs shortQrCode, err error) {
-	var req shortQrCodeReq
-	req.ExpireSeconds = secondsOut
-	req.ActionName = "QR_SCENE"
-	req.ActionInfo.Scene.SceneId = sceneId
-	api := fmt.Sprintf("https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token=%v", m.AccessToken)
-	raw, err := postJSON(api, req)
-	err = m.parse(raw, &rs)
-	if err != nil {
-		log.Println("POST", api, req, string(raw))
-	}
-	return
-}
-
-// 创建临时文本参数二维码请求
-type shortQrStrCodeReq struct {
-	ExpireSeconds int    `json:"expire_seconds"`
-	ActionName    string `json:"action_name"`
-	ActionInfo    struct {
-		Scene struct {
+			SceneId  int64  `json:"scene_id"`
 			SceneStr string `json:"scene_str"`
 		} `json:"scene"`
 	} `json:"action_info"`
 }
 
-// 创建临时文本参数二维码
-func (m Mp) CreateShortQrStrCode(sceneStr string, secondsOut int) (rs shortQrCode, err error) {
-	var req shortQrStrCodeReq
-	req.ExpireSeconds = secondsOut
-	req.ActionName = "QR_STR_SCENE"
-	req.ActionInfo.Scene.SceneStr = sceneStr
+// 创建二维码结果
+type QrResp struct {
+	MpBaseResp
+	Ticket        string `json:"ticket"`
+	ExpireSeconds int    `json:"expire_seconds"`
+	Url           string `json:"url"`
+}
+
+// 创建二维码
+func (m Mp) Qr(req QrReq) (rs QrResp, err error) {
 	api := fmt.Sprintf("https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token=%v", m.AccessToken)
-	raw, err := postJSON(api, req)
-	err = m.parse(raw, &rs)
-	if err != nil {
-		log.Println("POST", api, req, string(raw))
+	var buf = new(bytes.Buffer)
+	if err = json.NewEncoder(buf).Encode(req); err != nil {
+		return
 	}
+	resp, err := http.Post(api, contentJson, buf)
+	if err != nil {
+		return
+	}
+	err = json.NewDecoder(resp.Body).Decode(&rs)
 	return
 }
 
