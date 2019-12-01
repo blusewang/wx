@@ -187,6 +187,7 @@ func (m Mp) AppUserInfo(at jsAccessToken) (rs UserInfo, err error) {
 
 // 获取用户ID列表结果
 type UsersSegment struct {
+	MpBaseResp
 	Total int64 `json:"total"`
 	Count int64 `json:"count"`
 	Data  struct {
