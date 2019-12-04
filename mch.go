@@ -131,6 +131,14 @@ type PayNotify struct {
 	CashFeeType        string `xml:"cash_fee_type"`
 	CouponFee          int64  `xml:"coupon_fee"`
 	CouponCount        int64  `xml:"coupon_count"`
+	CouponType0        string `xml:"coupon_type_0"`
+	CouponId0          string `xml:"coupon_id_0"`
+	CouponType1        string `xml:"coupon_type_1"`
+	CouponId1          string `xml:"coupon_id_1"`
+	CouponType2        string `xml:"coupon_type_2"`
+	CouponId2          string `xml:"coupon_id_2"`
+	CouponType3        string `xml:"coupon_type_3"`
+	CouponId3          string `xml:"coupon_id_3"`
 	TransactionId      string `xml:"transaction_id"`
 	OutTradeNo         string `xml:"out_trade_no"`
 	Attach             string `xml:"attach"`
