@@ -526,6 +526,7 @@ func (m Mp) SendKfMsg(msg KfMsg) (err error) {
 	if err = json.NewEncoder(buf).Encode(msg); err != nil {
 		return
 	}
+	log.Println(buf.String())
 	resp, err := http.Post(api, contentJson, buf)
 	if err != nil {
 		return
