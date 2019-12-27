@@ -702,7 +702,7 @@ type MpMessage struct {
 	Longitude    float64 `xml:"Longitude" json:"longitude,omitempty"`
 	Precision    float64 `xml:"Precision" json:"precision,omitempty"`
 	SessionFrom  string  `xml:"SessionFrom" json:"session_from,omitempty"`
-	Status       string  `xml:"status" json:"status,omitempty"`
+	Status       string  `xml:"Status" json:"status,omitempty"`
 	MsgID        int64   `xml:"MsgID" json:"msgID,omitempty"`
 	SentCount    int64   `xml:"SentCount" json:"sent_count,omitempty"`
 	AppId        string  `xml:"-" json:"app_id,omitempty"`
