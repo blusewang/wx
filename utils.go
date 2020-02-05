@@ -86,6 +86,9 @@ func postStreamWithCert(cert tls.Certificate, api string, data io.Reader) (body 
 }
 
 func SafeString(str string, length int) string {
+	if length <= 3 {
+		return ""
+	}
 	runs := []rune(str)
 	// 单字符长度高于3的，不是一般的utf8字符，剔除掉
 	for k, v := range runs {
@@ -102,14 +105,36 @@ func SafeString(str string, length int) string {
 		}
 	}
 	str = string(runs)
-	if len([]byte(str)) > length {
+	if len(str) > length {
 		var r2 []rune
 		for k := range runs {
-			if len([]byte(string(runs[:k]))) <= length {
+
+			if len(string(runs[:k])) <= length-3 {
 				r2 = runs[:k]
 			}
 		}
-		r2 = r2[:len(r2)-1]
+		r2 = append(r2, '…')
+		str = string(r2)
+	}
+	return str
+}
+
+func LimitString(str string, length int) string {
+	runs := []rune(str)
+	// 单字符长度高于3的，不是一般的utf8字符，剔除掉
+	for k, v := range runs {
+		switch len([]byte(string(v))) {
+		case 1:
+			// 全部放行
+		case 3:
+			// 全部放行
+		default:
+			runs[k] = 'x'
+		}
+	}
+	str = string(runs)
+	if len(runs) > length {
+		var r2 = runs[:length-1]
 		r2 = append(r2, '…')
 		str = string(r2)
 	}

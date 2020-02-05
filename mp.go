@@ -458,16 +458,17 @@ type KfMsgMenu struct {
 	Id      string `json:"id"`
 	Content string `json:"content"`
 }
+type KfMsgCustomService struct {
+	KfAccount string `json:"kf_account"`
+}
 type KfMsg struct {
 	ToUser  string `json:"touser"`
 	MsgType string `json:"msgtype"`
 	Text    struct {
 		Content string `json:"content"`
 	} `json:"text"`
-	CustomService struct {
-		KfAccount string `json:"kf_account"`
-	} `json:"customservice"`
-	Image struct {
+	CustomService *KfMsgCustomService `json:"customservice,omitempty"`
+	Image         struct {
 		MediaId string `json:"media_id"`
 	} `json:"image"`
 	Voice struct {
@@ -525,6 +526,7 @@ func (m Mp) SendKfMsg(msg KfMsg) (err error) {
 	if err = json.NewEncoder(buf).Encode(msg); err != nil {
 		return
 	}
+	log.Println(buf.String())
 	resp, err := http.Post(api, contentJson, buf)
 	if err != nil {
 		return
@@ -674,36 +676,36 @@ func (m Mp) Upload(f io.Reader, t string) (rs mediaRes, err error) {
 
 // 公众号消息
 type MpMessage struct {
-	ToUserName   string  `xml:"ToUserName" json:"to_user_name"`
-	Encrypt      string  `xml:"Encrypt" json:"encrypt"`
-	FromUserName string  `xml:"FromUserName" json:"from_user_name"`
-	CreateTime   int64   `xml:"CreateTime" json:"create_time"`
-	MsgType      string  `xml:"MsgType" json:"msg_type"`
-	Content      string  `xml:"Content" json:"content"`
-	MsgId        int64   `xml:"MsgId" json:"msg_id"`
-	PicUrl       string  `xml:"PicUrl" json:"pic_url"`
-	MediaId      string  `xml:"MediaId" json:"media_id"`
-	Format       string  `xml:"Format" json:"format"`
-	Recognition  string  `xml:"Recognition" json:"recognition"`
-	ThumbMediaId string  `xml:"ThumbMediaId" json:"thumb_media_id"`
-	LocationX    float64 `xml:"Location_X" json:"location_x"`
-	LocationY    float64 `xml:"Location_Y" json:"location_y"`
-	Scale        int64   `xml:"Scale" json:"scale"`
-	Label        string  `xml:"Label" json:"label"`
-	Title        string  `xml:"Title" json:"title"`
-	Description  string  `xml:"Description" json:"description"`
-	Url          string  `xml:"Url" json:"url"`
-	Event        string  `xml:"Event" json:"event"`
-	EventKey     string  `xml:"EventKey" json:"event_key"`
-	Ticket       string  `xml:"Ticket" json:"ticket"`
-	Latitude     float64 `xml:"Latitude" json:"latitude"`
-	Longitude    float64 `xml:"Longitude" json:"longitude"`
-	Precision    float64 `xml:"Precision" json:"precision"`
-	SessionFrom  string  `xml:"SessionFrom" json:"session_from"`
-	Status       string  `xml:"status" json:"status"`
-	MsgID        int64   `xml:"MsgID" json:"msgID"`
-	SentCount    int64   `xml:"SentCount" json:"sent_count"`
-	AppId        string  `xml:"-" json:"app_id"`
+	ToUserName   string  `xml:"ToUserName" json:"to_user_name,omitempty"`
+	Encrypt      string  `xml:"Encrypt" json:"encrypt,omitempty"`
+	FromUserName string  `xml:"FromUserName" json:"from_user_name,omitempty"`
+	CreateTime   int64   `xml:"CreateTime" json:"create_time,omitempty"`
+	MsgType      string  `xml:"MsgType" json:"msg_type,omitempty"`
+	Content      string  `xml:"Content" json:"content,omitempty"`
+	MsgId        int64   `xml:"MsgId" json:"msg_id,omitempty"`
+	PicUrl       string  `xml:"PicUrl" json:"pic_url,omitempty"`
+	MediaId      string  `xml:"MediaId" json:"media_id,omitempty"`
+	Format       string  `xml:"Format" json:"format,omitempty"`
+	Recognition  string  `xml:"Recognition" json:"recognition,omitempty"`
+	ThumbMediaId string  `xml:"ThumbMediaId" json:"thumb_media_id,omitempty"`
+	LocationX    float64 `xml:"Location_X" json:"location_x,omitempty"`
+	LocationY    float64 `xml:"Location_Y" json:"location_y,omitempty"`
+	Scale        int64   `xml:"Scale" json:"scale,omitempty"`
+	Label        string  `xml:"Label" json:"label,omitempty"`
+	Title        string  `xml:"Title" json:"title,omitempty"`
+	Description  string  `xml:"Description" json:"description,omitempty"`
+	Url          string  `xml:"Url" json:"url,omitempty"`
+	Event        string  `xml:"Event" json:"event,omitempty"`
+	EventKey     string  `xml:"EventKey" json:"event_key,omitempty"`
+	Ticket       string  `xml:"Ticket" json:"ticket,omitempty"`
+	Latitude     float64 `xml:"Latitude" json:"latitude,omitempty"`
+	Longitude    float64 `xml:"Longitude" json:"longitude,omitempty"`
+	Precision    float64 `xml:"Precision" json:"precision,omitempty"`
+	SessionFrom  string  `xml:"SessionFrom" json:"session_from,omitempty"`
+	Status       string  `xml:"Status" json:"status,omitempty"`
+	MsgID        int64   `xml:"MsgID" json:"msgID,omitempty"`
+	SentCount    int64   `xml:"SentCount" json:"sent_count,omitempty"`
+	AppId        string  `xml:"-" json:"app_id,omitempty"`
 }
 
 // 公众号消息解密
@@ -749,6 +751,7 @@ func (msg *MpMessage) ShouldDecode(key string) (err error) {
 		return
 	}
 	msg.AppId = string(raw[_length+20:])
+	msg.Encrypt = ""
 	return
 }
 
