@@ -10,6 +10,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -149,6 +150,11 @@ type PayNotify struct {
 	TimeEnd            string `xml:"time_end"`
 }
 
+func (pn PayNotify) String() string {
+	raw, _ := json.Marshal(pn)
+	return string(raw)
+}
+
 type NotifyRes struct {
 	XMLName    xml.Name `xml:"xml"`
 	ReturnCode string   `xml:"return_code"`
@@ -162,39 +168,14 @@ func (m Mch) PayNotify(pn PayNotify) bool {
 	}
 	sign := pn.Sign
 	if sign != m.sign(pn) {
+		log.Println(sign, m.sign(pn))
 		return false
 	}
 	return true
 }
 
-// 支付结果查询请求
-type OrderQueryRes struct {
-	mchErr
-	AppId          string `xml:"appid"`
-	MchId          string `xml:"mch_id"`
-	NonceStr       string `xml:"nonce_str"`
-	Sign           string `xml:"sign"`
-	Openid         string `xml:"openid"`
-	IsSubscribe    string `xml:"is_subscribe"`
-	TradeType      string `xml:"trade_type"`
-	TradeState     string `xml:"trade_state"`
-	BankType       string `xml:"bank_type"`
-	TotalFee       int64  `xml:"total_fee"`
-	CashFee        int64  `xml:"cash_fee"`
-	TransactionId  string `xml:"transaction_id"`
-	OutTradeNo     string `xml:"out_trade_no"`
-	Attach         string `xml:"attach"`
-	TimeEnd        string `xml:"time_end"`
-	TradeStateDesc string `xml:"trade_state_desc"`
-}
-
-func (rs OrderQueryRes) String() string {
-	raw, _ := json.Marshal(rs)
-	return string(raw)
-}
-
 // 支付结果查询
-func (m Mch) OrderQuery(appId, outTradeNo string) (rs OrderQueryRes, err error) {
+func (m Mch) OrderQuery(appId, outTradeNo string) (rs PayNotify, err error) {
 	api := "https://api.mch.weixin.qq.com/pay/orderquery"
 	var req = struct {
 		XMLName    xml.Name `xml:"xml"`
@@ -221,6 +202,7 @@ func (m Mch) OrderQuery(appId, outTradeNo string) (rs OrderQueryRes, err error) 
 	if err = xml.NewDecoder(res.Body).Decode(&rs); err != nil {
 		return
 	}
+	rs.Sign = m.sign(rs)
 	return
 }
 

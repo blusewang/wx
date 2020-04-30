@@ -16,9 +16,10 @@ func TestBankPayReq_String(t *testing.T) {
 	m.MchName = ""
 	m.MchId = ""
 	m.MchKey = ""
-	rs, err := m.OrderQuery("wxe7bb2136f441a3bb", "H5_217903_1vEKQHqd0m")
+	rs, err := m.OrderQuery("", "H5_217903_1vEKQHqd0m")
 	if err != nil {
 		t.Fatal(err)
 	}
+	log.Println(m.PayNotify(rs))
 	log.Println(rs.String())
 }
