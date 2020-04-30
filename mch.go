@@ -167,6 +167,61 @@ func (m Mch) PayNotify(pn PayNotify) bool {
 	return true
 }
 
+// 支付结果查询请求
+type OrderQueryRes struct {
+	mchErr
+	AppId          string `xml:"appid"`
+	MchId          string `xml:"mch_id"`
+	NonceStr       string `xml:"nonce_str"`
+	Sign           string `xml:"sign"`
+	Openid         string `xml:"openid"`
+	IsSubscribe    string `xml:"is_subscribe"`
+	TradeType      string `xml:"trade_type"`
+	TradeState     string `xml:"trade_state"`
+	BankType       string `xml:"bank_type"`
+	TotalFee       int64  `xml:"total_fee"`
+	CashFee        int64  `xml:"cash_fee"`
+	TransactionId  string `xml:"transaction_id"`
+	OutTradeNo     string `xml:"out_trade_no"`
+	Attach         string `xml:"attach"`
+	TimeEnd        string `xml:"time_end"`
+	TradeStateDesc string `xml:"trade_state_desc"`
+}
+
+// 支付结果查询
+func (m Mch) OrderQuery(appId, outTradeNo string) (rs OrderQueryRes, err error) {
+	if err = m.prepareCert(); err != nil {
+		return
+	}
+	api := "https://api.mch.weixin.qq.com/mmpaysptrans/query_bank"
+	var req = struct {
+		XMLName    xml.Name `xml:"xml"`
+		AppId      string   `xml:"appid"`
+		MchId      string   `xml:"mch_id"`
+		OutTradeNo string   `xml:"out_trade_no"`
+		NonceStr   string   `xml:"nonce_str"`
+		Sign       string   `xml:"sign"`
+	}{
+		AppId:      appId,
+		MchId:      m.MchId,
+		OutTradeNo: outTradeNo,
+		NonceStr:   NewRandStr(32),
+	}
+	req.Sign = m.sign(req)
+	buf := new(bytes.Buffer)
+	if err = xml.NewEncoder(buf).Encode(req); err != nil {
+		return
+	}
+	res, err := http.Post(api, "", buf)
+	if err != nil {
+		return
+	}
+	if err = xml.NewDecoder(res.Body).Decode(&rs); err != nil {
+		return
+	}
+	return
+}
+
 // 单次分账结果
 type ProfitSharingReq struct {
 	XMLName       xml.Name                   `xml:"xml"`
