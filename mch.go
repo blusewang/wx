@@ -188,12 +188,14 @@ type OrderQueryRes struct {
 	TradeStateDesc string `xml:"trade_state_desc"`
 }
 
+func (rs OrderQueryRes) String() string {
+	raw, _ := json.Marshal(rs)
+	return string(raw)
+}
+
 // 支付结果查询
 func (m Mch) OrderQuery(appId, outTradeNo string) (rs OrderQueryRes, err error) {
-	if err = m.prepareCert(); err != nil {
-		return
-	}
-	api := "https://api.mch.weixin.qq.com/mmpaysptrans/query_bank"
+	api := "https://api.mch.weixin.qq.com/pay/orderquery"
 	var req = struct {
 		XMLName    xml.Name `xml:"xml"`
 		AppId      string   `xml:"appid"`
