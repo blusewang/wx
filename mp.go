@@ -44,7 +44,8 @@ type accessTokenRes struct {
 
 // 获取access_token
 func (m Mp) AuthToken() (rs accessTokenRes, err error) {
-	api := fmt.Sprintf("https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=%v&secret=%v", m.AppId, m.AppSecret)
+	api := fmt.Sprintf("https://api.weixin.qq.com/cgi-bin/token?"+
+		"grant_type=client_credential&appid=%v&secret=%v", m.AppId, m.AppSecret)
 	raw, err := get(api)
 	if err != nil {
 		return
@@ -421,7 +422,8 @@ func (m Mp) KfList() (rs KfListResp, err error) {
 }
 
 func (m Mp) KfUploadHeadImg(f io.Reader, kfAccount string) (err error) {
-	api := fmt.Sprintf("https://api.weixin.qq.com/customservice/kfaccount/uploadheadimg?access_token=%v&kf_account=%v",
+	api := fmt.Sprintf("https://api.weixin.qq.com/customservice/kfaccount/uploadheadimg?"+
+		"access_token=%v&kf_account=%v",
 		m.AccessToken, kfAccount)
 	body := &bytes.Buffer{}
 	w := multipart.NewWriter(body)
@@ -790,5 +792,50 @@ func (m *Mp) ShortUrl(lUrl string) (sUrl string, err error) {
 		err = errors.New(rs.ErrMsg)
 	}
 	sUrl = rs.ShortUrl
+	return
+}
+
+type Buyer struct {
+	OpenId        string `json:"openid,omitempty"`
+	BuyerNickname string `json:"buyer_nickname,omitempty"`
+}
+type AddGuideBuyerReq struct {
+	GuideAccount string `json:"guide_account,omitempty"`
+	GuideOpenid  string `json:"guide_openid,omitempty"`
+	Buyer
+	BuyerList []Buyer `json:"buyer_list,omitempty"`
+}
+
+func (a AddGuideBuyerReq) SelfTest() error {
+	if a.GuideAccount == "" && a.GuideOpenid == "" {
+		return errors.New("guide_account guide_openid 二者必有其一")
+	}
+	if a.OpenId == "" && a.BuyerList == nil {
+		return errors.New("openid buyer_list 二者必有其一")
+	}
+	if len(a.BuyerList) > 200 {
+		return errors.New("客户列表不超过200")
+	}
+	return nil
+}
+
+// 对话能力 - 为顾问分配客户
+func (m *Mp) AddGuideBuyerRelation(req AddGuideBuyerReq) (res MpBaseResp, err error) {
+	if err = req.SelfTest(); err != nil {
+		return
+	}
+	var form = new(bytes.Buffer)
+	if err = json.NewEncoder(form).Encode(req); err != nil {
+		return
+	}
+	resp, err := http.Post(
+		fmt.Sprintf("https://api.weixin.qq.com/cgi-bin/guide/addguidebuyerrelation?access_token=%v", m.AccessToken),
+		contentJson,
+		form,
+	)
+	if err != nil {
+		return
+	}
+	err = json.NewDecoder(resp.Body).Decode(&res)
 	return
 }

@@ -57,3 +57,14 @@ func TestMpMessage_ShouldDecode(t *testing.T) {
 	_ = json.Unmarshal(raw, &msg2)
 	log.Println(msg2.MsgType, msg2.MsgId, msg2.MsgID)
 }
+
+func TestAddGuideBuyerReq(t *testing.T) {
+	var req AddGuideBuyerReq
+	req.GuideOpenid = "....."
+	req.BuyerList = []Buyer{
+		{"", ""},
+	}
+	log.Println(req.SelfTest())
+	raw, _ := json.Marshal(req)
+	log.Println(string(raw))
+}
