@@ -20,6 +20,7 @@ func TestBankPayReq_String(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	log.Println(rs)
 	log.Println(m.PayNotify(rs))
 	log.Println(rs.String())
 }

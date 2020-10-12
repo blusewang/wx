@@ -6,6 +6,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"log"
+	"net/url"
 	"strconv"
 	"testing"
 )
@@ -59,12 +60,45 @@ func TestMpMessage_ShouldDecode(t *testing.T) {
 }
 
 func TestAddGuideBuyerReq(t *testing.T) {
-	var req AddGuideBuyerReq
-	req.GuideOpenid = "....."
-	req.BuyerList = []Buyer{
-		{"", ""},
+	var req MessageCustomSend
+	req.Req.ToUser = "oEG8Ss8b7yLZm3wcV2CnUyed0Psk"
+	req.Req.MsgType = MessageCustomSendTypeText
+	req.Req.Text.Content = "hello"
+	req.Req.CustomService.KfAccount = "72@gdbhyzb"
+	var mp = Mp{
+		AppId:       "wxe7bb2136f441a3bb",
+		AccessToken: "36_MKulCi50-PW0EoV_dCLN_A3bGnLo2HL2ijHapo-WqmzFNdXz6H_Y3icValZBRiBgkhFfGQbXgEbEtz-7D-90RIVsL7Qu4KTryZ16QDwSwpHRNvexs2LATSaeo9CBRZO4HuzYFJwfsTWkwfjGPSZcACAKNU",
 	}
-	log.Println(req.SelfTest())
 	raw, _ := json.Marshal(req)
 	log.Println(string(raw))
+	log.Println(mp.Post(MessageCustomSendApi, req.Req, &req.Res))
+	log.Println(req.Res)
+}
+
+func TestMp_GetTicket(t *testing.T) {
+	var req MessageMassSend
+	req.Req.ToUser = []string{"asdfasdfß"}
+	req.Req.MsgType = MessageMassSendTypeText
+	req.Req.Text.Content = "abcd"
+	raw, _ := json.Marshal(req)
+	log.Println(string(raw))
+}
+
+func TestMp_AppUserInfo(t *testing.T) {
+	var mp = Mp{
+		AppId:       "wxe7bb2136f441a3bb",
+		AccessToken: "36_MKulCi50-PW0EoV_dCLN_A3bGnLo2HL2ijHapo-WqmzFNdXz6H_Y3icValZBRiBgkhFfGQbXgEbEtz-7D-90RIVsL7Qu4KTryZ16QDwSwpHRNvexs2LATSaeo9CBRZO4HuzYFJwfsTWkwfjGPSZcACAKNU",
+	}
+	var req CustomServiceGetKfList
+	req.Req = url.Values{}
+	if err := mp.Get(CustomServiceGetKfListApi, req.Req, &req.Res); err != nil {
+		t.Fatal(err)
+	}
+	log.Println(req.Res)
+}
+
+func TestMp_AuthToken(t *testing.T) {
+	var v = url.Values{}
+	v.Set("x", "")
+	log.Println(v.Encode())
 }
