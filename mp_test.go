@@ -39,22 +39,6 @@ func TestLimitString(t *testing.T) {
 		t.Error(err)
 	}
 }
-func TestMp(t *testing.T) {
-	log.SetFlags(log.Ltime | log.Lshortfile)
-	var mp = Mp{
-		AppId:       "wx20a7b1888ed3de1b",
-		AccessToken: "38_XtyPcVUODHd8q3TNYPVGAZ2WNRx_nW4gnclObbv78tsEa1Y_bwdkLALDMEb4372wYqcC_CanjU9O0Zw4MqHiqxrIukk_G4ElAUxyv_ASOb0V2y8647cbxbYU-G8CbtnPdLNub8NrqtUVrSTnWAPaAGALPE",
-	}
-	resp, err := http.Get("https://b.s.mywsy.cn/logo.512.png")
-	if err != nil {
-		t.Error(err)
-	}
-	err = mp.KfUploadHeadImg(resp.Body, "1@1")
-	if err != nil {
-		t.Error(err)
-	}
-	log.Println(err)
-}
 
 func TestMpAccount_NewMpReq(t *testing.T) {
 	var s mp_api.MessageQuery
@@ -66,7 +50,7 @@ func TestMpAccount_NewMpReq(t *testing.T) {
 	log.Println(s)
 }
 
-func TestMp_Upload(t *testing.T) {
+func TestMp_ShortUrl(t *testing.T) {
 	log.SetFlags(log.Ltime | log.Lshortfile)
 	var a = MpAccount{
 		AppId:          "wx20a7b1888ed3de1b",
@@ -78,13 +62,11 @@ func TestMp_Upload(t *testing.T) {
 		ServerHost:     mp_api.ServerHostShangHai,
 	}
 
-	resp, err := http.Get("https://b.s.mywsy.cn/logo.512.png")
-	if err != nil {
-		t.Error(err)
-	}
-
-	var rs mp_api.MediaUploadRes
-	err = a.NewMpReq(mp_api.MediaUpload).Query(mp_api.MediaUploadQuery{Type: mp_api.MediaTypeImage}).Bind(&rs).Upload(resp.Body, "png")
+	var rs mp_api.AccountShortUrlRes
+	err := a.NewMpReq(mp_api.AccountShortUrl).SendData(mp_api.AccountShortUrlData{
+		Action:  mp_api.ShortUrlAction,
+		LongUrl: "https://developers.weixin.qq.com/doc/offiaccount/Account_Management/URL_Shortener.html",
+	}).Bind(&rs).Do()
 	if err != nil {
 		t.Error(err)
 	}

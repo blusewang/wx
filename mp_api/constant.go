@@ -50,13 +50,18 @@ const (
 	UserTagMembersBatch      = "cgi-bin/tags/members/batchtagging"   // 批量为用户打标签
 	UserTagMembersBatchUnTag = "cgi-bin/tags/members/batchuntagging" // 批量为用户取消标签
 	UserTagsGetIdList        = "cgi-bin/tags/getidlist"              // 获取用户身上的标签列表
+	UserInfoUpdateRemark     = "cgi-bin/user/info/updateremark"      // 用户设置备注名
+	UserInfo                 = "cgi-bin/user/info"                   // 获取用户基本信息（包括UnionID机制）
+	UserInfoBatchGet         = "cgi-bin/user/info/batchget"          // 批量获取用户基本信息
+	UserGet                  = "cgi-bin/user/get"                    // 获取关注者列表
 
-	GuideAccountAdd        = "cgi-bin/guide/addguideacct"
-	UserManagementUserInfo = "cgi-bin/user/info"   // 获取用户基本信息（包括UnionID机制）
-	TagsCreate             = "cgi-bin/tags/create" // 创建标签
-	TagsGet                = "cgi-bin/tags/get"    // 获取公众号已创建的标签
-	TagsDelete             = "cgi-bin/tags/delete" // 删除标签
+	// 账号管理
+	AccountQrCreate = "cgi-bin/qrcode/create" // 二维码
+	AccountShortUrl = "cgi-bin/shorturl"      // 长链接转成短链接
 
+	// 对话能力
+	GuideAccountAdd = "cgi-bin/guide/addguideacct"          // 添加顾问
+	GuideAddBuyer   = "cgi-bin/guide/addguidebuyerrelation" // 为顾问分配客户
 )
 
 type MessageCustomSendType string
@@ -81,3 +86,13 @@ const (
 	MediaTypeVideo = "video"
 	MediaTypeThumb = "thumb"
 )
+
+type QrActionType string
+
+const (
+	QrActionTypeScene         = "QR_SCENE"
+	QrActionTypeLimitScene    = "QR_LIMIT_SCENE"
+	QrActionTypeLimitStrScene = "QR_LIMIT_STR_SCENE"
+)
+
+const ShortUrlAction = "long2short"

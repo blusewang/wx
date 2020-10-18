@@ -11,7 +11,6 @@ import (
 	"github.com/google/go-querystring/query"
 	"github.com/youkale/go-querystruct/params"
 	"io"
-	"log"
 	"mime/multipart"
 	"net/http"
 	"net/url"
@@ -178,7 +177,6 @@ func (mp *mpReq) Upload(reader io.Reader, fileExtension string) (err error) {
 		mp.account.ServerHost = mp_api.ServerHostUniversal
 	}
 	var apiUrl = fmt.Sprintf("https://%v/%v?%v", mp.account.ServerHost, mp.path, v.Encode())
-	log.Println(apiUrl)
 	body := &bytes.Buffer{}
 	w := multipart.NewWriter(body)
 	wf, err := w.CreateFormFile("media", fmt.Sprintf("/tmp/%v.%v", NewRandStr(23), fileExtension))
