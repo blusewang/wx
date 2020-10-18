@@ -1,104 +1,92 @@
 package wxApi
 
 import (
-	"bytes"
-	"encoding/json"
-	"encoding/xml"
-	"fmt"
+	"github.com/blusewang/wxApi-go/mp_api"
+	"github.com/youkale/go-querystruct/params"
 	"log"
+	"net/http"
 	"net/url"
-	"strconv"
 	"testing"
 )
 
-func TestMp_UrlSign(t *testing.T) {
-	var mp Mp
-	mp.AppId = ""
-	mp.AccessToken = "20_yTW5klfqkUC7S4t6KnpbkDUhABRfX8Cy08FDrOtywxWTNXKQ9Yb9GofXPMp-E612Ws4dfMquNkVLOPBvN-iPntohWFJt0BZOe6jkm_2vB1wBpRnrggaPpuKYHHziBdRZ8rhM6PBjwlG2CfR5PEXjADAFUN"
-	mp.Ticket = "sM4AOVdWfPE4DxkXGEs8VDBHBi5leSJ5SXaqosbAfR0VxBBWLZOEZpeSBNF9YLk7EJTblEkfqI28KTkK0r1S_g"
+func TestLimitString(t *testing.T) {
+	log.SetFlags(log.Ltime | log.Lshortfile)
+	var a = MpAccount{
+		AppId:          "wx20a7b1888ed3de1b",
+		AccessToken:    "38_XtyPcVUODHd8q3TNYPVGAZ2WNRx_nW4gnclObbv78tsEa1Y_bwdkLALDMEb4372wYqcC_CanjU9O0Zw4MqHiqxrIukk_G4ElAUxyv_ASOb0V2y8647cbxbYU-G8CbtnPdLNub8NrqtUVrSTnWAPaAGALPE",
+		AppSecret:      "ceea4169a257e0dcca5eb9486aa3e2d9",
+		PrivateToken:   "cashier",
+		EncodingAESKey: "5Vbl6BYbV5glfq4QmOpzkkaLYjH4xLaaxNmpkxsYPI3",
+		JsSdkTicket:    "HoagFKDcsGMVCIY2vOjf9s0GXJnei4VNEyMRGfnxFUVx0yG1pAUA8B1hsRllP4kp8v2wAIbXzQPiwlmmkJp1xg",
+		ServerHost:     mp_api.ServerHostShangHai,
+	}
 
-	var rs = mp.UrlSign("http://www.mywsy.cn/")
+	var list mp_api.MessageCustomServiceKfListRes
+	if err := a.NewMpReq(mp_api.MessageCustomServiceKfList).Bind(&list).Do(); err != nil {
+		t.Error(err)
+	}
+	log.Println(list)
+
+	resp, err := http.Get("https://b.s.mywsy.cn/logo.512.png")
+	if err != nil {
+		t.Error(err)
+	}
+
+	err = a.NewMpReq(mp_api.MessageCustomServiceKfAccountUploadHeadImg).Query(mp_api.MessageCustomServiceKfAccountUploadHeadImgQuery{
+		KfAccount: "1@1",
+	}).Upload(resp.Body, "png")
+	if err != nil {
+		t.Error(err)
+	}
+}
+func TestMp(t *testing.T) {
+	log.SetFlags(log.Ltime | log.Lshortfile)
+	var mp = Mp{
+		AppId:       "wx20a7b1888ed3de1b",
+		AccessToken: "38_XtyPcVUODHd8q3TNYPVGAZ2WNRx_nW4gnclObbv78tsEa1Y_bwdkLALDMEb4372wYqcC_CanjU9O0Zw4MqHiqxrIukk_G4ElAUxyv_ASOb0V2y8647cbxbYU-G8CbtnPdLNub8NrqtUVrSTnWAPaAGALPE",
+	}
+	resp, err := http.Get("https://b.s.mywsy.cn/logo.512.png")
+	if err != nil {
+		t.Error(err)
+	}
+	err = mp.KfUploadHeadImg(resp.Body, "1@1")
+	if err != nil {
+		t.Error(err)
+	}
+	log.Println(err)
+}
+
+func TestMpAccount_NewMpReq(t *testing.T) {
+	var s mp_api.MessageQuery
+	var v = url.Values{
+		"signature": []string{"G0gkxwXEutoJOd6zXGHXPHd7M56SgWEQcjxnuRWuEud98Mh0iaeibcMWG4SaVF0OPYbh0G0qdYlALGbmrp5G36fw"},
+		"timestamp": []string{"234234234"},
+	}
+	log.Println(params.Unmarshal(v, &s))
+	log.Println(s)
+}
+
+func TestMp_Upload(t *testing.T) {
+	log.SetFlags(log.Ltime | log.Lshortfile)
+	var a = MpAccount{
+		AppId:          "wx20a7b1888ed3de1b",
+		AccessToken:    "38_DXXrtUF80DxFW9ngM49GZypgVQ632G1GDEsK641bMMSafF0dXx9WLipivcAMHCkP7WwmIHmPum4RqXlN4ueDr49Q-OuDE2pUpV8tdGs6st-U50aUjRCI9X0bM-ErCRGruevqaXX8-SIDwlEkKUGdACAWGS",
+		AppSecret:      "ceea4169a257e0dcca5eb9486aa3e2d9",
+		PrivateToken:   "cashier",
+		EncodingAESKey: "5Vbl6BYbV5glfq4QmOpzkkaLYjH4xLaaxNmpkxsYPI3",
+		JsSdkTicket:    "HoagFKDcsGMVCIY2vOjf9s0GXJnei4VNEyMRGfnxFUVx0yG1pAUA8B1hsRllP4kp8v2wAIbXzQPiwlmmkJp1xg",
+		ServerHost:     mp_api.ServerHostShangHai,
+	}
+
+	resp, err := http.Get("https://b.s.mywsy.cn/logo.512.png")
+	if err != nil {
+		t.Error(err)
+	}
+
+	var rs mp_api.MediaUploadRes
+	err = a.NewMpReq(mp_api.MediaUpload).Query(mp_api.MediaUploadQuery{Type: mp_api.MediaTypeImage}).Bind(&rs).Upload(resp.Body, "png")
+	if err != nil {
+		t.Error(err)
+	}
 	log.Println(rs)
-}
-
-func TestMp_AppAuthToken(t *testing.T) {
-	log.Println(fmt.Sprintf("%X", []byte("时会将订单剩余")))
-}
-
-func TestMpMessage_ShouldDecode(t *testing.T) {
-	var buf = new(bytes.Buffer)
-	buf.WriteString(`<xml><ToUserName><![CDATA[gh_930afe6ccfc4]]></ToUserName>
-<FromUserName><![CDATA[oEG8Ss5_zZ8iZcaxwNMrVItCLVWA]]></FromUserName>
-<CreateTime>1575092600</CreateTime>
-<MsgType><![CDATA[event]]></MsgType>
-<Event><![CDATA[MASSSENDJOBFINISH]]></Event>
-<MsgID>3147484542</MsgID>
-<Status><![CDATA[send success]]></Status>
-<TotalCount>11</TotalCount>
-<FilterCount>9</FilterCount>
-<SentCount>9</SentCount>
-<ErrorCount>0</ErrorCount>
-<CopyrightCheckResult><Count>0</Count>
-<ResultList></ResultList>
-<CheckState>0</CheckState>
-</CopyrightCheckResult>
-<ArticleUrlResult><Count>0</Count>
-<ResultList></ResultList>
-</ArticleUrlResult>
-</xml>`)
-	var msg, msg2 MpMessage
-	if err := xml.NewDecoder(buf).Decode(&msg); err != nil {
-		t.Fatal(err)
-	}
-	log.Println(msg.MsgType, msg.MsgId, msg.MsgID)
-	log.Println(strconv.FormatInt(msg.MsgID, 10))
-
-	raw, _ := json.Marshal(msg)
-	log.Println(string(raw))
-	_ = json.Unmarshal(raw, &msg2)
-	log.Println(msg2.MsgType, msg2.MsgId, msg2.MsgID)
-}
-
-func TestAddGuideBuyerReq(t *testing.T) {
-	var req MessageCustomSend
-	req.Req.ToUser = "oEG8Ss8b7yLZm3wcV2CnUyed0Psk"
-	req.Req.MsgType = MessageCustomSendTypeText
-	req.Req.Text.Content = "hello"
-	req.Req.CustomService.KfAccount = "72@gdbhyzb"
-	var mp = Mp{
-		AppId:       "wxe7bb2136f441a3bb",
-		AccessToken: "36_MKulCi50-PW0EoV_dCLN_A3bGnLo2HL2ijHapo-WqmzFNdXz6H_Y3icValZBRiBgkhFfGQbXgEbEtz-7D-90RIVsL7Qu4KTryZ16QDwSwpHRNvexs2LATSaeo9CBRZO4HuzYFJwfsTWkwfjGPSZcACAKNU",
-	}
-	raw, _ := json.Marshal(req)
-	log.Println(string(raw))
-	log.Println(mp.Post(MessageCustomSendApi, req.Req, &req.Res))
-	log.Println(req.Res)
-}
-
-func TestMp_GetTicket(t *testing.T) {
-	var req MessageMassSend
-	req.Req.ToUser = []string{"asdfasdfß"}
-	req.Req.MsgType = MessageMassSendTypeText
-	req.Req.Text.Content = "abcd"
-	raw, _ := json.Marshal(req)
-	log.Println(string(raw))
-}
-
-func TestMp_AppUserInfo(t *testing.T) {
-	var mp = Mp{
-		AppId:       "wxe7bb2136f441a3bb",
-		AccessToken: "36_MKulCi50-PW0EoV_dCLN_A3bGnLo2HL2ijHapo-WqmzFNdXz6H_Y3icValZBRiBgkhFfGQbXgEbEtz-7D-90RIVsL7Qu4KTryZ16QDwSwpHRNvexs2LATSaeo9CBRZO4HuzYFJwfsTWkwfjGPSZcACAKNU",
-	}
-	var req CustomServiceGetKfList
-	req.Req = url.Values{}
-	if err := mp.Get(CustomServiceGetKfListApi, req.Req, &req.Res); err != nil {
-		t.Fatal(err)
-	}
-	log.Println(req.Res)
-}
-
-func TestMp_AuthToken(t *testing.T) {
-	var v = url.Values{}
-	v.Set("x", "")
-	log.Println(v.Encode())
 }
