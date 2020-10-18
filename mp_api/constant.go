@@ -7,7 +7,7 @@ const (
 	ServerHostUniversal  = "api.weixin.qq.com"    // 通用域名
 	ServerHostUniversal2 = "api2.weixin.qq.com"   // 通用异地容灾域名
 	ServerHostShangHai   = "sh.api.weixin.qq.com" // 上海域名
-	ServerHostShengZhen  = "sz.api.weixin.qq.com" // 深圳域名
+	ServerHostShenZhen   = "sz.api.weixin.qq.com" // 深圳域名
 	ServerHostHK         = "hk.api.weixin.qq.com" // 香港域名
 )
 
@@ -62,6 +62,9 @@ const (
 	// 对话能力
 	GuideAccountAdd = "cgi-bin/guide/addguideacct"          // 添加顾问
 	GuideAddBuyer   = "cgi-bin/guide/addguidebuyerrelation" // 为顾问分配客户
+
+	// 小程序
+	MiniProgramJsCode2Session = "sns/jscode2session" // 登录凭证校验
 )
 
 type MessageCustomSendType string

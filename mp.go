@@ -54,6 +54,7 @@ func (ma MpAccount) ReadMessage(req *http.Request) (msg mp_api.MessageData, err 
 	return
 }
 
+// 微信网页的网址签名
 func (ma MpAccount) UrlSign(u string) (d map[string]interface{}) {
 	data := make(map[string]interface{})
 	data["noncestr"] = NewRandStr(32)
