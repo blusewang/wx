@@ -16,7 +16,7 @@
 - [x] 支持一行代码从被动消息的 http.Request 中安全取出消息成`MessageData`。内部实现了识别并解密消息、校验请求的`Query`数据。
 
 
-## 时效性凭证
+## 时效性凭证安置方式约定
 `access_token`、`js_sdk_ticket` 这类需要每7200秒刷新一次的，该放到`crontab`中。
 
 ## 核心设计
@@ -39,7 +39,7 @@
 - 对话能力：[guide.go](https://github.com/blusewang/wxApi-go/blob/master/mp_api/guide.go)
 - 小程序：[mini_program.go](https://github.com/blusewang/wxApi-go/blob/master/mp_api/mini_program.go)
 
-只实现了很有限的数据。若需要自带的数据结构之外的API。完全可以自行另起书写。并能得到一样的兼容体验！
+只实现了很有限的数据。若需要使用本库自带的数据结构之外的API。完全可以自行另起书写。并能得到一样的兼容体验！
 
 ## 举例
 ```go
