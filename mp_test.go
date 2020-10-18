@@ -12,13 +12,9 @@ import (
 func TestLimitString(t *testing.T) {
 	log.SetFlags(log.Ltime | log.Lshortfile)
 	var a = MpAccount{
-		AppId:          "wx20a7b1888ed3de1b",
-		AccessToken:    "38_XtyPcVUODHd8q3TNYPVGAZ2WNRx_nW4gnclObbv78tsEa1Y_bwdkLALDMEb4372wYqcC_CanjU9O0Zw4MqHiqxrIukk_G4ElAUxyv_ASOb0V2y8647cbxbYU-G8CbtnPdLNub8NrqtUVrSTnWAPaAGALPE",
-		AppSecret:      "ceea4169a257e0dcca5eb9486aa3e2d9",
-		PrivateToken:   "cashier",
-		EncodingAESKey: "5Vbl6BYbV5glfq4QmOpzkkaLYjH4xLaaxNmpkxsYPI3",
-		JsSdkTicket:    "HoagFKDcsGMVCIY2vOjf9s0GXJnei4VNEyMRGfnxFUVx0yG1pAUA8B1hsRllP4kp8v2wAIbXzQPiwlmmkJp1xg",
-		ServerHost:     mp_api.ServerHostShangHai,
+		AppId:       "wx20a7b1888ed3de1b",
+		AccessToken: "38_XtyPcVUODHd8q3TNYPVGAZ2WNRx_nW4gnclObbv78tsEa1Y_bwdkLALDMEb4372wYqcC_CanjU9O0Zw4MqHiqxrIukk_G4ElAUxyv_ASOb0V2y8647cbxbYU-G8CbtnPdLNub8NrqtUVrSTnWAPaAGALPE",
+		ServerHost:  mp_api.ServerHostShangHai,
 	}
 
 	var list mp_api.MessageCustomServiceKfListRes
@@ -53,13 +49,9 @@ func TestMpAccount_NewMpReq(t *testing.T) {
 func TestMp_ShortUrl(t *testing.T) {
 	log.SetFlags(log.Ltime | log.Lshortfile)
 	var a = MpAccount{
-		AppId:          "wx20a7b1888ed3de1b",
-		AccessToken:    "38_DXXrtUF80DxFW9ngM49GZypgVQ632G1GDEsK641bMMSafF0dXx9WLipivcAMHCkP7WwmIHmPum4RqXlN4ueDr49Q-OuDE2pUpV8tdGs6st-U50aUjRCI9X0bM-ErCRGruevqaXX8-SIDwlEkKUGdACAWGS",
-		AppSecret:      "ceea4169a257e0dcca5eb9486aa3e2d9",
-		PrivateToken:   "cashier",
-		EncodingAESKey: "5Vbl6BYbV5glfq4QmOpzkkaLYjH4xLaaxNmpkxsYPI3",
-		JsSdkTicket:    "HoagFKDcsGMVCIY2vOjf9s0GXJnei4VNEyMRGfnxFUVx0yG1pAUA8B1hsRllP4kp8v2wAIbXzQPiwlmmkJp1xg",
-		ServerHost:     mp_api.ServerHostShangHai,
+		AppId:       "wx20a7b1888ed3de1b",
+		AccessToken: "38_DXXrtUF80DxFW9ngM49GZypgVQ632G1GDEsK641bMMSafF0dXx9WLipivcAMHCkP7WwmIHmPum4RqXlN4ueDr49Q-OuDE2pUpV8tdGs6st-U50aUjRCI9X0bM-ErCRGruevqaXX8-SIDwlEkKUGdACAWGS",
+		ServerHost:  mp_api.ServerHostShangHai,
 	}
 
 	var rs mp_api.AccountShortUrlRes
