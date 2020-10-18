@@ -85,6 +85,7 @@ func postStreamWithCert(cert tls.Certificate, api string, data io.Reader) (body 
 	return
 }
 
+// 安全地限制长度，并将微信不支持的字符替换成'x'，能满足商户平台的字符要求
 func SafeString(str string, length int) string {
 	if length <= 3 {
 		return ""
@@ -119,6 +120,7 @@ func SafeString(str string, length int) string {
 	return str
 }
 
+// 限制长度，并将微信不支持的字符替换成'x'，能满足公众号App的字符要求
 func LimitString(str string, length int) string {
 	runs := []rune(str)
 	// 单字符长度高于3的，不是一般的utf8字符，剔除掉
@@ -141,6 +143,7 @@ func LimitString(str string, length int) string {
 	return str
 }
 
+// 生成符合微信要求随机字符
 func NewRandStr(length int) string {
 	codes := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
 	codeLen := len(codes)
