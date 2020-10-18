@@ -39,7 +39,7 @@
 - 对话能力：[guide.go](https://github.com/blusewang/wxApi-go/blob/master/mp_api/guide.go)
 - 小程序：[mini_program.go](https://github.com/blusewang/wxApi-go/blob/master/mp_api/mini_program.go)
 
-只实现了很有限的数据。若需要使用本库自带的数据结构之外的API。完全可以自行另起书写。并能得到一样的兼容体验！
+只实现了很有限的数据。若需要使用本库自带的数据结构之外的API。完全可以参考本库的数据结构写法，自行另起书写(注意不同业务的tag名称不同)。并能得到一样的兼容体验！
 
 ## 举例
 ```go
