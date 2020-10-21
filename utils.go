@@ -1,51 +1,25 @@
 package wxApi
 
 import (
-	"bytes"
 	rand2 "crypto/rand"
 	"crypto/rsa"
 	"crypto/sha1"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/base64"
-	"encoding/json"
 	"encoding/pem"
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"reflect"
 	"sort"
+	"strings"
 	"time"
 )
 
 type H map[string]interface{}
-
-func get(api string) (raw []byte, err error) {
-	resp, err := http.Get(api)
-	if err != nil {
-		return
-	}
-	raw, err = ioutil.ReadAll(resp.Body)
-	_ = resp.Body.Close()
-	return
-}
-
-func postJSON(api string, postData interface{}) (raw []byte, err error) {
-	buf := &bytes.Buffer{}
-	if err = json.NewEncoder(buf).Encode(postData); err != nil {
-		return
-	}
-	resp, err := http.Post(api, "application/json", buf)
-	if err != nil {
-		return
-	}
-	raw, err = ioutil.ReadAll(resp.Body)
-	_ = resp.Body.Close()
-	return
-}
 
 func postWithCert(cert tls.Certificate, api string, body io.Reader) (resp *http.Response, err error) {
 	client := &http.Client{
@@ -158,29 +132,40 @@ func NewRandStr(length int) string {
 	return string(data)
 }
 func obj2map(obj interface{}) (p map[string]interface{}) {
-	ts := reflect.TypeOf(obj)
 	vs := reflect.ValueOf(obj)
-	p = make(map[string]interface{})
-	n := ts.NumField()
-	for i := 0; i < n; i++ {
-		k := ts.Field(i).Tag.Get("json")
-		if k == "" {
-			k = ts.Field(i).Tag.Get("xml")
-			if k == "xml" {
-				continue
-			}
-		}
-		if k == "sign" || k == "-" {
-			continue
-		}
-		// 跳过空值
-		if reflect.Zero(vs.Field(i).Type()).Interface() == vs.Field(i).Interface() {
-			continue
-		}
-		p[k] = vs.Field(i).Interface()
+	if vs.Kind() == reflect.Ptr {
+		vs = vs.Elem()
 	}
+	p = make(map[string]interface{})
+	obj2mapOnce(vs, &p)
 	return
 }
+
+func obj2mapOnce(vs reflect.Value, data *map[string]interface{}) {
+	for i := 0; i < vs.NumField(); i++ {
+		if vs.Type().Field(i).Anonymous {
+			obj2mapOnce(vs.Field(i), data)
+		} else {
+			k := vs.Type().Field(i).Tag.Get("json")
+			if k == "" {
+				k = vs.Type().Field(i).Tag.Get("xml")
+				if k == "xml" {
+					continue
+				}
+			}
+			if k == "sign" || k == "-" {
+				continue
+			}
+			k = strings.Split(k, ",")[0]
+			// 跳过空值
+			if reflect.Zero(vs.Field(i).Type()).Interface() == vs.Field(i).Interface() {
+				continue
+			}
+			(*data)[k] = vs.Field(i).Interface()
+		}
+	}
+}
+
 func mapSortByKey(data map[string]interface{}) string {
 	var keys []string
 	nData := ""

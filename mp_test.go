@@ -55,7 +55,7 @@ func TestMp_ShortUrl(t *testing.T) {
 	}
 
 	var rs mp_api.AccountShortUrlRes
-	err := a.NewMpReq(mp_api.AccountShortUrl).SendData(mp_api.AccountShortUrlData{
+	err := a.NewMpReq(mp_api.AccountShortUrl).SendData(&mp_api.AccountShortUrlData{
 		Action:  mp_api.ShortUrlAction,
 		LongUrl: "https://developers.weixin.qq.com/doc/offiaccount/Account_Management/URL_Shortener.html",
 	}).Bind(&rs).Do()
