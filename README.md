@@ -14,10 +14,10 @@
 `订阅号`、`服务号`、`小程序`、`App`
 - [x] 支持连接不同的地区的微信服务器
 - [x] 支持一行代码从被动消息的 http.Request 中安全取出消息成`MessageData`。内部实现了识别并解密消息、校验请求的`Query`数据。
-
+- [x] 链式调用，让不同需求的业务能一气和成！
 
 ## 时效性凭证安置方式约定
-`access_token`、`js_sdk_ticket` 这类需要每7200秒刷新一次的，该放到`crontab`中。
+`access_token`、`js_sdk_ticket` 这类需要每7200秒刷新一次的，放到`crontab`中。
 
 ## 核心设计
 ### 算法
@@ -25,7 +25,6 @@
 - 为微信H5的网址签名 `UrlSign(url string)`
 - 读取被动消息通知 `ReadMessage(req *http.Request)`
 - 主动发出请求 `NewMpReq(path mp_api.MpApi) *mpReq`
-    - 请求采用链式调用，让不同需求的代码能一气和成！
 
 ### 数据结构
 - 常量：[constant.go](https://github.com/blusewang/wxApi-go/blob/master/mp_api/constant.go)
@@ -78,7 +77,52 @@
 ```
 
 # 商户账号API
-设计中...
+`App、JSAPI、小程序下单` `分账` `付款至微信零钱` `付款至个人银行卡` `发红包`
+- [x] 自动填充基础信息
+- [x] 自动签名
+- [x] 私有证书HTTP客户端自动缓存
+- [x] 支持`MD5`、`HMAC-SHA256`加密
+- [x] 支持银行卡加密
+
+## 核心设计
+### 算法
+一个基础账号对象`MchAccount`，它有三个行为：
+- 创建请求 `NewMchReq(url string)`
+- 将订单签名给App `OrderSign4App(or mch_api.PayUnifiedOrderRes)`
+- 将订单签名给于H5、小程序 `OrderSign(or mch_api.PayUnifiedOrderRes)`
+- 验证支付成功通知 `PayNotify(pn mch_api.PayNotify)`
+- 银行卡机要信息加密 `RsaEncrypt(plain string)`
+
+### 数据结构
+- 常量：[constant.go](https://github.com/blusewang/wxApi-go/blob/master/mch_api/constant.go)
+- 数据结构：[structs.go](https://github.com/blusewang/wxApi-go/blob/master/mch_api/structs.go)
+
+## 举例
+```go
+    mch := MchAccount{}
+    
+	var data mch_api.PayProfitSharingRes
+	var body = mch_api.PayProfitSharingData{
+		TransactionId: "4200000531202004307536721907",
+		OutOrderNo:    "TSF_216144_1065_ye7DvHdSed",
+	}
+	_ = body.SerReceivers([]mch_api.PayProfitSharingReceiver{
+		{
+			Type:        "",
+			Account:     "",
+			Amount:      10,
+			Description: "",
+		},
+	})
+
+	err := mch.NewMchReq(mch_api.PayProfitSharing).
+		Send(&body). // 注意：发送的数据需传指针，以便自动填充基础信息和签名
+		UseHMacSign(). // 指定使用HMAC-SHA256
+		UsePrivateCert(). // 指定使用私有证书通信
+		Bind(&data).Do() // 传指针
+	log.Println(err)
+	log.Println(data)
+```
 
 # 为微信业务数据提供的额外工具方法 
 - `NewRandStr` 生成符合微信要求随机字符
