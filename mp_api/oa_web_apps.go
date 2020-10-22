@@ -32,3 +32,13 @@ type OaWebAppsSnsUserInfoRes struct {
 	Privilege  []string `json:"privilege"`
 	UnionId    string   `json:"unionid"`
 }
+
+type OaWebAppsJsSDKTicketQuery struct {
+	Type JsSDKTicketType `param:"type"`
+}
+
+type OaWebAppsJsSDKTicketRes struct {
+	MpBaseResp
+	Ticket    string `json:"ticket"`
+	ExpiresIn int64  `json:"expires_in"`
+}

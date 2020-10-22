@@ -38,8 +38,9 @@ const (
 	MediaUpload    = "cgi-bin/media/upload"    // 新增临时素材
 
 	// 微信网页开发
-	OaWebAppsSnsAuth2AccessToken = "sns/oauth2/access_token" // 通过code换取网页授权access_token
-	OaWebAppsSnsUserInfo         = "sns/userinfo"            // 拉取用户信息(需scope为 snsapi_userinfo)
+	OaWebAppsSnsAuth2AccessToken = "sns/oauth2/access_token"  // 通过code换取网页授权access_token
+	OaWebAppsSnsUserInfo         = "sns/userinfo"             // 拉取用户信息(需scope为 snsapi_userinfo)
+	OaWebAppsJsSDKTicket         = "cgi-bin/ticket/getticket" // 获取JsSDK ticket
 
 	// 用户管理
 	UserTagsCreate           = "cgi-bin/tags/create"                 // 创建标签
@@ -99,3 +100,12 @@ const (
 )
 
 const ShortUrlAction = "long2short"
+
+const TokenGrantType = "client_credential"
+
+type JsSDKTicketType string
+
+const (
+	JsSDKTicketTypeJSAPI  = "jsapi"
+	JsSDKTicketTypeWxCard = "wx_card"
+)

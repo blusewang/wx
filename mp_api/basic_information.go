@@ -1,12 +1,12 @@
 package mp_api
 
-type TokenQuery struct {
+type BasicInformationTokenQuery struct {
 	GrantType string `url:"grant_type"`
 	AppId     string `url:"appid"`
 	Secret    string `url:"secret"`
 }
 
-type TokenRes struct {
+type BasicInformationTokenRes struct {
 	MpBaseResp
 	AccessToken string `json:"access_token"`
 	ExpiresIn   int64  `json:"expires_in"`
