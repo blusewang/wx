@@ -1,14 +1,23 @@
-# wxApi-go
+# wechat
 
-针对`golang`设计的微信Api接口，涵盖公众号、小程序、App、商户。
-支持下单、notify验证、公对私打款至银行卡等
+wechat weixin sdk，支持微信应用和商户。
 
-根据微信的业务特征，分为两部分：
+## 设计目标
+在概念清晰的基础上追求更少的编码、更开放、灵活的结构。
+
+本SDK不是在微信官方API基础上进一步封装，打包出一个新的框架级的重体量SDK。而是努力成为微信官方文档的Golang版快速工具箱。
+
+努力让开发者在学习微信官方文档后，不再有新的学习曲线（另学一套）！
+
+所以我们目标是：极致、简单！不创造新理念、不创造新架构！
+
+## 概述
+根据微信的文档，微信的业务有两个不同的领域：
 - 应用类账号下的Api
 - 商户类账号下的Api
 
 ## 安装
-	go get github.com/blusewang/wxApi-go
+	go get github.com/blusewang/wechat
 
 # 应用账号API
 `订阅号`、`服务号`、`小程序`、`App`
@@ -20,6 +29,8 @@
 ## 时效性凭证安置方式约定
 `access_token`、`js_sdk_ticket` 这类需要每7200秒刷新一次的，放到`crontab`中。
 
+对此不满的，完全可以在使用本库的基础上，采用自己熟悉的方式、甚至自己设计方案来替代`crontab`。
+
 ## 核心设计
 ### 算法
 一个基础账号对象`MpAccount`，它有三个行为：
@@ -28,16 +39,16 @@
 - 主动发出请求 `NewMpReq(path mp_api.MpApi) *mpReq`
 
 ### 数据结构
-- 常量：[constant.go](https://github.com/blusewang/wxApi-go/blob/master/mp_api/constant.go)
-- 基础信息：[basic_information.go](https://github.com/blusewang/wxApi-go/blob/master/mp_api/basic_information.go)
-- 自定义菜单：[custom_menus.go](https://github.com/blusewang/wxApi-go/blob/master/mp_api/custom_menus.go)
-- 消息：[message.go](https://github.com/blusewang/wxApi-go/blob/master/mp_api/message.go)
-- 媒体文件上传：[media.go](https://github.com/blusewang/wxApi-go/blob/master/mp_api/media.go)
-- 微信网页开发：[oa_web_apps.go](https://github.com/blusewang/wxApi-go/blob/master/mp_api/oa_web_apps.go)
-- 用户管理：[user.go](https://github.com/blusewang/wxApi-go/blob/master/mp_api/user.go)
-- 账号管理：[account.go](https://github.com/blusewang/wxApi-go/blob/master/mp_api/account.go)
-- 对话能力：[guide.go](https://github.com/blusewang/wxApi-go/blob/master/mp_api/guide.go)
-- 小程序：[mini_program.go](https://github.com/blusewang/wxApi-go/blob/master/mp_api/mini_program.go)
+- 常量：[constant.go](https://github.com/blusewang/wechat/blob/master/mp_api/constant.go)
+- 基础信息：[basic_information.go](https://github.com/blusewang/wechat/blob/master/mp_api/basic_information.go)
+- 自定义菜单：[custom_menus.go](https://github.com/blusewang/wechat/blob/master/mp_api/custom_menus.go)
+- 消息：[message.go](https://github.com/blusewang/wechat/blob/master/mp_api/message.go)
+- 媒体文件上传：[media.go](https://github.com/blusewang/wechat/blob/master/mp_api/media.go)
+- 微信网页开发：[oa_web_apps.go](https://github.com/blusewang/wechat/blob/master/mp_api/oa_web_apps.go)
+- 用户管理：[user.go](https://github.com/blusewang/wechat/blob/master/mp_api/user.go)
+- 账号管理：[account.go](https://github.com/blusewang/wechat/blob/master/mp_api/account.go)
+- 对话能力：[guide.go](https://github.com/blusewang/wechat/blob/master/mp_api/guide.go)
+- 小程序：[mini_program.go](https://github.com/blusewang/wechat/blob/master/mp_api/mini_program.go)
 
 只实现了很有限的数据。若需要使用本库自带的数据结构之外的API。完全可以参考本库的数据结构写法，自行另起书写(注意不同业务的tag名称不同)。
 并能得到一样的兼容体验！
@@ -96,8 +107,8 @@
 - 付款至银行卡时，隐私信息项加密 `RsaEncrypt(plain string)`
 
 ### 数据结构
-- 常量：[constant.go](https://github.com/blusewang/wxApi-go/blob/master/mch_api/constant.go)
-- 数据结构：[structs.go](https://github.com/blusewang/wxApi-go/blob/master/mch_api/structs.go)
+- 常量：[constant.go](https://github.com/blusewang/wechat/blob/master/mch_api/constant.go)
+- 数据结构：[structs.go](https://github.com/blusewang/wechat/blob/master/mch_api/structs.go)
 
 只实现了很有限的数据。若需要使用本库自带的数据结构之外的API。完全可以参考本库的数据结构写法，自行另起书写(建议参考structs.go中的方式书写)。
 能得到一样的兼容体验！
