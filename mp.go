@@ -1,10 +1,10 @@
-package wxApi
+package wx
 
 import (
 	"crypto/sha1"
 	"encoding/xml"
 	"fmt"
-	"github.com/blusewang/wxApi-go/mp_api"
+	"github.com/blusewang/wx/mp_api"
 	"github.com/youkale/go-querystruct/params"
 	"net/http"
 	"strings"

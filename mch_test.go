@@ -4,10 +4,10 @@
 // that can be found in the LICENSE file in the root of the source
 // tree.
 
-package wxApi
+package wx
 
 import (
-	"github.com/blusewang/wxApi-go/mch_api"
+	"github.com/blusewang/wx/mch_api"
 	"log"
 	"reflect"
 	"testing"

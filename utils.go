@@ -1,4 +1,4 @@
-package wxApi
+package wx
 
 import (
 	rand2 "crypto/rand"

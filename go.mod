@@ -1,4 +1,4 @@
-module github.com/blusewang/wxApi-go
+module github.com/blusewang/wx
 
 go 1.13
 

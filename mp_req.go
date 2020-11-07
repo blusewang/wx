@@ -4,14 +4,14 @@
 // that can be found in the LICENSE file in the root of the source
 // tree.
 
-package wxApi
+package wx
 
 import (
 	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/blusewang/wxApi-go/mp_api"
+	"github.com/blusewang/wx/mp_api"
 	"github.com/google/go-querystring/query"
 	"io"
 	"mime/multipart"

@@ -4,7 +4,7 @@
 // that can be found in the LICENSE file in the root of the source
 // tree.
 
-package wxApi
+package wx
 
 import (
 	"crypto/hmac"
@@ -19,7 +19,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"github.com/blusewang/wxApi-go/mch_api"
+	"github.com/blusewang/wx/mch_api"
 	"net/http"
 	"sort"
 	"strconv"
