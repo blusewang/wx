@@ -55,7 +55,7 @@ wechat weixin sdk，支持微信应用和商户。
 
 ## 举例
 ```go
-	a := MpAccount{
+	a := wx.MpAccount{
 		AppId:       "your_app_id",
 		AccessToken: "38_XtyPcVUODHd8q3TNYPVGAZ2WNRx_nW4gnclObbv78tsEa1Y_bwdkLALDMEb4372wYqcC_CanjU9O0Zw4MqHiqxrIukk_G4ElAUxyv_ASOb0V2y8647cbxbYU-G8CbtnPdLNub8NrqtUVrSTnWAPaAGALPE",
         // ...
@@ -115,7 +115,7 @@ wechat weixin sdk，支持微信应用和商户。
 
 ## 举例
 ```go
-    mch := MchAccount{}
+    mch := wx.MchAccount{}
     
 	var data mch_api.PayProfitSharingRes
 	var body = mch_api.PayProfitSharingData{
