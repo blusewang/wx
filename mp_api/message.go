@@ -199,18 +199,57 @@ type MessageTemplateSendDataItem struct {
 	Value string `json:"value"`
 	Color string `json:"color"`
 }
+type MessageTemplateMiniProgram struct {
+	AppId    string `json:"appid"`
+	PagePath string `json:"pagepath"`
+}
 type MessageTemplateSendData struct {
-	ToUser      string `json:"touser"`
-	TemplateId  string `json:"template_id"`
-	Url         string `json:"url"`
-	MiniProgram struct {
-		AppId    string `json:"appid"`
-		PagePath string `json:"pagepath"`
-	} `json:"mini_program"`
-	Data map[string]MessageTemplateSendDataItem `json:"data"`
+	ToUser      string                                 `json:"touser"`
+	TemplateId  string                                 `json:"template_id"`
+	Url         string                                 `json:"url"`
+	MiniProgram MessageTemplateMiniProgram             `json:"mini_program"`
+	Data        map[string]MessageTemplateSendDataItem `json:"data"`
 }
 
 type MessageTemplateSendRes struct {
 	MpBaseResp
 	MsgId int64 `json:"msgid"`
+}
+
+type MessageMassSendMediaId struct {
+	MediaId string `json:"media_id"`
+}
+type MessageMassSendText struct {
+	Content string `json:"content"`
+}
+type MessageMassSendImages struct {
+	MediaIds           []string `json:"media_ids"`
+	Recommend          string   `json:"recommend"`
+	NeedOpenComment    int      `json:"need_open_comment"`
+	OnlyFansCanComment int      `json:"only_fans_can_comment"`
+}
+type MessageMassSendMpVideo struct {
+	MediaId     string `json:"media_id"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+}
+type MessageMassSendWxCard struct {
+	CardId string `json:"card_id"`
+}
+type MessageMassSendData struct {
+	ToUser            []string                `json:"touser"`
+	MsgType           MessageMassSendType     `json:"msgtype"`
+	MpNews            *MessageMassSendMediaId `json:"mpnews,omitempty"`
+	Text              *MessageMassSendText    `json:"text,omitempty"`
+	Voice             *MessageMassSendMediaId `json:"voice,omitempty"`
+	Images            *MessageMassSendImages  `json:"images,omitempty"`
+	MpVideo           *MessageMassSendMpVideo `json:"mpvideo,omitempty"`
+	WxCard            *MessageMassSendWxCard  `json:"wxcard,omitempty"`
+	SendIgnoreReprint int                     `json:"send_ignore_reprint"`
+}
+
+type MessageMassSendRes struct {
+	MpBaseResp
+	MsgId     int64 `json:"msg_id"`
+	MsgDataId int64 `json:"msg_data_id"`
 }

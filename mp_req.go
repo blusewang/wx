@@ -90,6 +90,16 @@ func (mp *mpReq) Do() (err error) {
 	if err = json.NewDecoder(resp.Body).Decode(mp.res); err != nil {
 		return
 	}
+	rv := reflect.ValueOf(mp.res).Elem()
+	for i := 0; i < rv.NumField(); i++ {
+		iv := rv.Field(i)
+		if iv.Type().String() == "mp_api.MpBaseResp" {
+			if iv.FieldByName("ErrCode").Int() > 0 {
+				err = errors.New(fmt.Sprintf("%v %v", iv.FieldByName("ErrCode").Int(), iv.FieldByName("ErrMsg").String()))
+				return
+			}
+		}
+	}
 	bs, has := mp.res.(*mp_api.MpBaseResp)
 	if has {
 		if bs.ErrCode > 0 {

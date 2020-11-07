@@ -32,6 +32,7 @@ const (
 	MessageCustomServiceKfList                 = "cgi-bin/customservice/getkflist"       // 获取所有客服
 	MessageCustomSend                          = "cgi-bin/message/custom/send"           // 客服接口-发消息
 	MessageTemplateSend                        = "cgi-bin/message/template/send"         // 发送模板消息
+	MessageMassSend                            = "cgi-bin/message/mass/send"             // 根据OpenID列表群发
 
 	// 媒体文件上传
 	MediaUploadImg = "cgi-bin/media/uploadimg" // 上传图文消息内的图片获取URL
@@ -82,6 +83,17 @@ const (
 	MessageCustomSendTypeMiniProgramPage = "miniprogrampage"
 )
 
+type MessageMassSendType string
+
+const (
+	MessageMassSendTypeMpNews  = "mpnews"
+	MessageMassSendTypeText    = "text"
+	MessageMassSendTypeVoice   = "voice"
+	MessageMassSendTypeImages  = "images"
+	MessageMassSendTypeMpVideo = "mpvideo"
+	MessageMassSendTypeWxCard  = "wxcard"
+)
+
 type MediaType string
 
 const (
@@ -95,13 +107,19 @@ type QrActionType string
 
 const (
 	QrActionTypeScene         = "QR_SCENE"
+	QrActionTypeStrScene      = "QR_STR_SCENE"
 	QrActionTypeLimitScene    = "QR_LIMIT_SCENE"
 	QrActionTypeLimitStrScene = "QR_LIMIT_STR_SCENE"
 )
 
 const ShortUrlAction = "long2short"
 
-const TokenGrantType = "client_credential"
+type TokenGrantType string
+
+const (
+	TokenGrantTypeClientCredential = "client_credential"
+	TokenGrantTypeAuthCode         = "authorization_code"
+)
 
 type JsSDKTicketType string
 

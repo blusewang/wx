@@ -1,6 +1,7 @@
 package wx
 
 import (
+	"encoding/json"
 	"github.com/blusewang/wx/mp_api"
 	"github.com/youkale/go-querystruct/params"
 	"log"
@@ -38,4 +39,12 @@ func TestMp_ShortUrl(t *testing.T) {
 		t.Error(err)
 	}
 	log.Println(rs)
+}
+
+func TestMpAccount_ReadMessage(t *testing.T) {
+	var r mp_api.MessageMassSendData
+	r.Text = &mp_api.MessageMassSendText{Content: "sdfasdf"}
+	r.MsgType = mp_api.MessageMassSendTypeText
+	raw, _ := json.Marshal(r)
+	log.Println(string(raw))
 }

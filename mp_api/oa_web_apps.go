@@ -1,10 +1,10 @@
 package mp_api
 
 type OaWebAppsSnsAuth2AccessTokenQuery struct {
-	AppId     string `param:"appid"`
-	Secret    string `param:"secret"`
-	Code      string `param:"code"`
-	GrantType string `param:"grant_type"`
+	AppId     string `url:"appid"`
+	Secret    string `url:"secret"`
+	Code      string `url:"code"`
+	GrantType string `url:"grant_type"`
 }
 type OaWebAppsSnsAuth2AccessTokenRes struct {
 	MpBaseResp
@@ -16,13 +16,13 @@ type OaWebAppsSnsAuth2AccessTokenRes struct {
 }
 
 type OaWebAppsSnsUserInfoQuery struct {
-	OpenId string `param:"open_id"`
-	Lang   string `param:"lang"`
+	OpenId string `url:"openid"`
+	Lang   string `url:"lang"`
 }
 
 type OaWebAppsSnsUserInfoRes struct {
 	MpBaseResp
-	OpenId     string   `json:"open_id"`
+	OpenId     string   `json:"openid"`
 	NickName   string   `json:"nickname"`
 	Sex        int64    `json:"sex"`
 	Province   string   `json:"province"`
@@ -34,7 +34,7 @@ type OaWebAppsSnsUserInfoRes struct {
 }
 
 type OaWebAppsJsSDKTicketQuery struct {
-	Type JsSDKTicketType `param:"type"`
+	Type JsSDKTicketType `url:"type"`
 }
 
 type OaWebAppsJsSDKTicketRes struct {

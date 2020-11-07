@@ -6,20 +6,24 @@
 
 package mp_api
 
+type AccountQrScene struct {
+	SceneId  int64  `json:"scene_id,omitempty"`
+	SceneStr string `json:"scene_str,omitempty"`
+}
+type AccountQrActionInfo struct {
+	Scene AccountQrScene `json:"scene"`
+}
+
 type AccountQrCreateData struct {
-	ExpireSeconds int64        `json:"expire_seconds,omitempty"`
-	ActionName    QrActionType `json:"action_name"`
-	ActionInfo    struct {
-		Scene struct {
-			SceneId  int64  `json:"scene_id,omitempty"`
-			SceneStr string `json:"scene_str,omitempty"`
-		} `json:"scene"`
-	} `json:"action_info"`
+	ExpireSeconds int64               `json:"expire_seconds,omitempty"`
+	ActionName    QrActionType        `json:"action_name"`
+	ActionInfo    AccountQrActionInfo `json:"action_info"`
 }
 
 type AccountQrCreateRes struct {
+	MpBaseResp
 	Ticket        string `json:"ticket"`
-	ExpireSeconds int64  `json:"expire_seconds"`
+	ExpireSeconds int64  `json:"expire_seconds,omitempty"`
 	Url           string `json:"url"`
 }
 
