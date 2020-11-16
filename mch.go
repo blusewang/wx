@@ -31,7 +31,6 @@ var cache = make(map[string]*http.Client)
 // 商户账号
 type MchAccount struct {
 	MchId           string
-	MchName         string
 	MchKey          string
 	MchSSLCert      []byte // 私有加密传输时的证书
 	MchSSLKey       []byte // 私有加密传输时的密钥
@@ -81,7 +80,7 @@ func (ma MchAccount) PayNotify(pn mch_api.PayNotify) bool {
 		return false
 	}
 	sign := pn.Sign
-	if pn.SignType == mch_api.MchSignTypeMD5 {
+	if pn.SignType == mch_api.MchSignTypeMD5 || pn.SignType == "" {
 		if sign == ma.signMd5(pn) {
 			return true
 		}

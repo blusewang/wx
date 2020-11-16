@@ -17,7 +17,6 @@ func TestMchAccount_NewMchReq(t *testing.T) {
 	log.SetFlags(log.Ltime | log.Lshortfile)
 	mch := MchAccount{
 		MchId:           "",
-		MchName:         "",
 		MchKey:          "",
 		MchSSLCert:      []byte(""),
 		MchSSLKey:       []byte(""),

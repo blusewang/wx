@@ -12,7 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/blusewang/wx/mch_api"
-	"log"
 	"net/http"
 	"reflect"
 	"strings"
@@ -80,7 +79,6 @@ func (mr *mchReq) Do() (err error) {
 	if err = xml.NewEncoder(buf).Encode(mr.sendData); err != nil {
 		return
 	}
-	log.Println(buf.String())
 	api := fmt.Sprintf("https://api.mch.weixin.qq.com/%v", mr.api)
 	if strings.HasPrefix(string(mr.api), "http") {
 		api = string(mr.api)
