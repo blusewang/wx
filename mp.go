@@ -24,8 +24,7 @@ type MpAccount struct {
 }
 
 // 读取通知消息
-func (ma MpAccount) ReadMessage(req *http.Request) (msg mp_api.MessageData, err error) {
-	var q mp_api.MessageQuery
+func (ma MpAccount) ReadMessage(req *http.Request) (q mp_api.MessageQuery, msg mp_api.MessageData, err error) {
 	if err = params.Unmarshal(req.URL.Query(), &q); err != nil {
 		return
 	}
@@ -59,8 +58,7 @@ func (ma MpAccount) UrlSign(u string) (d map[string]interface{}) {
 	d["nonceStr"] = data["noncestr"]
 
 	str := mapSortByKey(data)
-	raw := sha1.Sum([]byte(str))
-	d["signature"] = strings.ToUpper(fmt.Sprintf("%x", raw))
+	d["signature"] = strings.ToUpper(fmt.Sprintf("%x", sha1.Sum([]byte(str))))
 	d["jsApiList"] = []string{}
 	return
 }

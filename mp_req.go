@@ -76,7 +76,9 @@ func (mp *mpReq) Do() (err error) {
 		resp, err = http.Get(apiUrl)
 	} else {
 		var buf = new(bytes.Buffer)
-		if err = json.NewEncoder(buf).Encode(mp.sendData); err != nil {
+		var coder = json.NewEncoder(buf)
+		coder.SetEscapeHTML(false)
+		if err = coder.Encode(mp.sendData); err != nil {
 			return
 		}
 		resp, err = http.Post(apiUrl, "application/json", buf)

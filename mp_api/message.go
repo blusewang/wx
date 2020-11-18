@@ -145,54 +145,61 @@ type MessageCustomSendMsgMenuItem struct {
 	Id      string `json:"id"`
 	Content string `json:"content"`
 }
+type MessageCustomSendMsgText struct {
+	Content string `json:"content"`
+}
+type MessageCustomSendMsgImage struct {
+	MediaId string `json:"media_id"`
+}
+type MessageCustomSendMsgVoice MessageCustomSendMsgImage
+type MessageCustomSendMsgVideo struct {
+	MediaId      string `json:"media_id"`
+	ThumbMediaId string `json:"thumb_media_id"`
+	Title        string `json:"title"`
+	Description  string `json:"description"`
+}
+type MessageCustomSendMsgMusic struct {
+	Title        string `json:"title"`
+	Description  string `json:"description"`
+	MusicUrl     string `json:"music_url"`
+	HqMusicUrl   string `json:"hq_music_url"`
+	ThumbMediaId string `json:"thumb_media_id"`
+}
+type MessageCustomSendMsgNews struct {
+	Articles []MessageCustomSendArticle `json:"articles"`
+}
+type MessageCustomSendMsgMpNews MessageCustomSendMsgImage
+type MessageCustomSendMsgMenu struct {
+	HeadContent string                         `json:"head_content"`
+	List        []MessageCustomSendMsgMenuItem `json:"list"`
+	TailContent string                         `json:"tail_content"`
+}
+type MessageCustomSendMsgWxCard struct {
+	CardId string `json:"card_id"`
+}
+type MessageCustomSendMsgMiniProgramPage struct {
+	Title        string `json:"title"`
+	AppId        string `json:"appid"`
+	PagePath     string `json:"pagepath"`
+	ThumbMediaId string `json:"thumb_media_id"`
+}
+type MessageCustomSendMsgCustomService struct {
+	KfAccount string `json:"kf_account"`
+}
 type MessageCustomSendData struct {
-	ToUser  string                `json:"touser"`
-	MsgType MessageCustomSendType `json:"msgtype"`
-	Text    struct {
-		Content string `json:"content"`
-	} `json:"text"`
-	Image struct {
-		MediaId string `json:"media_id"`
-	} `json:"image"`
-	Voice struct {
-		MediaId string `json:"media_id"`
-	} `json:"voice"`
-	Video struct {
-		MediaId      string `json:"media_id"`
-		ThumbMediaId string `json:"thumb_media_id"`
-		Title        string `json:"title"`
-		Description  string `json:"description"`
-	} `json:"video"`
-	Music struct {
-		Title        string `json:"title"`
-		Description  string `json:"description"`
-		MusicUrl     string `json:"music_url"`
-		HqMusicUrl   string `json:"hq_music_url"`
-		ThumbMediaId string `json:"thumb_media_id"`
-	} `json:"music"`
-	News struct {
-		Articles []MessageCustomSendArticle `json:"articles"`
-	} `json:"news"`
-	MpNews struct {
-		MediaId string `json:"media_id"`
-	} `json:"mp_news"`
-	MsgMenu struct {
-		HeadContent string                         `json:"head_content"`
-		List        []MessageCustomSendMsgMenuItem `json:"list"`
-		TailContent string                         `json:"tail_content"`
-	}
-	WxCard struct {
-		CardId string `json:"card_id"`
-	} `json:"wx_card"`
-	MiniProgramPage struct {
-		Title        string `json:"title"`
-		AppId        string `json:"appid"`
-		PagePath     string `json:"pagepath"`
-		ThumbMediaId string `json:"thumb_media_id"`
-	} `json:"miniprogrampage"`
-	CustomService struct {
-		KfAccount string `json:"kf_account"`
-	} `json:"customservice"`
+	ToUser          string                              `json:"touser"`
+	MsgType         MessageCustomSendType               `json:"msgtype"`
+	Text            MessageCustomSendMsgText            `json:"text"`
+	Image           MessageCustomSendMsgImage           `json:"image"`
+	Voice           MessageCustomSendMsgVoice           `json:"voice"`
+	Video           MessageCustomSendMsgVideo           `json:"video"`
+	Music           MessageCustomSendMsgMusic           `json:"music"`
+	News            MessageCustomSendMsgNews            `json:"news"`
+	MpNews          MessageCustomSendMsgMpNews          `json:"mpnews"`
+	MsgMenu         MessageCustomSendMsgMenu            `json:"msgmenu"`
+	WxCard          MessageCustomSendMsgWxCard          `json:"wxcard"`
+	MiniProgramPage MessageCustomSendMsgMiniProgramPage `json:"miniprogrampage"`
+	CustomService   MessageCustomSendMsgCustomService   `json:"customservice"`
 }
 
 type MessageTemplateSendDataItem struct {
