@@ -15,7 +15,7 @@ import (
 
 type MchBase struct {
 	XMLName  xml.Name `xml:"xml"`
-	MchId    string   `xml:"mchid"`
+	MchId    string   `xml:"mch_id"`
 	AppId    string   `xml:"appid,omitempty"`
 	NonceStr string   `xml:"nonce_str"`
 	Sign     string   `xml:"sign"`

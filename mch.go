@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"github.com/blusewang/wx/mch_api"
 	"net/http"
-	"sort"
 	"strconv"
 	"time"
 )
@@ -108,7 +107,7 @@ func (ma MchAccount) RsaEncrypt(plain string) (out string) {
 }
 
 func (ma MchAccount) signMd5(obj interface{}) string {
-	return fmt.Sprintf("%X", md5.Sum([]byte(ma.mapSortByKey(obj2map(obj))+"&key="+ma.MchKey)))
+	return fmt.Sprintf("%X", md5.Sum([]byte(mapSortByKey(obj2map(obj))+"&key="+ma.MchKey)))
 }
 
 func (ma MchAccount) signHmacSha256(obj interface{}) string {
@@ -118,25 +117,7 @@ func (ma MchAccount) signHmacSha256(obj interface{}) string {
 }
 
 func (ma MchAccount) orderSign(data map[string]interface{}) string {
-	return fmt.Sprintf("%X", md5.Sum([]byte(ma.mapSortByKey(data)+"&key="+ma.MchKey)))
-}
-
-func (ma MchAccount) mapSortByKey(data map[string]interface{}) string {
-	var keys []string
-	nData := ""
-	for k := range data {
-		keys = append(keys, k)
-	}
-
-	sort.Strings(keys)
-	for _, k := range keys {
-		nData = fmt.Sprintf("%v&%v=%v", nData, k, data[k])
-	}
-	if len(nData) > 0 {
-		return nData[1:]
-	} else {
-		return ""
-	}
+	return fmt.Sprintf("%X", md5.Sum([]byte(mapSortByKey(data)+"&key="+ma.MchKey)))
 }
 
 func (ma MchAccount) newPrivateClient() (cli http.Client, err error) {
