@@ -270,16 +270,19 @@ type RedPackInfoRes struct {
 }
 
 type TransferData struct {
-	MchBase
-	MchId          string `xml:"mchid"`
-	MchAppId       string `xml:"mch_appid"`
-	PartnerTradeNo string `xml:"partner_trade_no"`
-	OpenId         string `xml:"openid"`
-	CheckName      string `xml:"check_name"`
-	ReUserName     string `xml:"re_user_name"`
-	Amount         int    `xml:"amount"`
-	Desc           string `xml:"desc"`
-	SpBillCreateIp string `xml:"spbill_create_ip"`
+	XMLName        xml.Name `xml:"xml"`
+	NonceStr       string   `xml:"nonce_str"`
+	Sign           string   `xml:"sign"`
+	SignType       string   `xml:"sign_type,omitempty"`
+	MchId          string   `xml:"mchid"`
+	MchAppId       string   `xml:"mch_appid"`
+	PartnerTradeNo string   `xml:"partner_trade_no"`
+	OpenId         string   `xml:"openid"`
+	CheckName      string   `xml:"check_name"`
+	ReUserName     string   `xml:"re_user_name"`
+	Amount         int      `xml:"amount"`
+	Desc           string   `xml:"desc"`
+	SpBillCreateIp string   `xml:"spbill_create_ip"`
 }
 
 type TransferRes struct {

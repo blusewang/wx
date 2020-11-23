@@ -101,23 +101,38 @@ func (mr *mchReq) sign() (err error) {
 		return errors.New("the data to be sign is not set")
 	}
 
-	if reflect.ValueOf(mr.sendData).Kind() != reflect.Ptr {
+	vf := reflect.ValueOf(mr.sendData)
+	if vf.Kind() != reflect.Ptr {
 		return errors.New("the send data must be ptr")
 	}
 
-	var base = reflect.ValueOf(mr.sendData).Elem().FieldByName("MchBase")
-	base.FieldByName("MchId").SetString(mr.account.MchId)
-	base.FieldByName("AppId").SetString(mr.appId)
-	base.FieldByName("NonceStr").SetString(NewRandStr(32))
+	if vf.Elem().FieldByName("MchBase").IsValid() {
+		var base = vf.Elem().FieldByName("MchBase")
+		base.FieldByName("MchId").SetString(mr.account.MchId)
+		base.FieldByName("AppId").SetString(mr.appId)
+		base.FieldByName("NonceStr").SetString(NewRandStr(32))
 
-	var sign string
-	//base.FieldByName("SignType").SetString(mch_api.MchSignTypeMD5)
-	if mr.isHmacSign {
-		base.FieldByName("SignType").SetString(mch_api.MchSignTypeHMACSHA256)
-		sign = mr.account.signHmacSha256(mr.sendData)
-	} else {
-		sign = mr.account.signMd5(mr.sendData)
+		var sign string
+		if mr.isHmacSign {
+			base.FieldByName("SignType").SetString(mch_api.MchSignTypeHMACSHA256)
+			sign = mr.account.signHmacSha256(mr.sendData)
+		} else {
+			sign = mr.account.signMd5(mr.sendData)
+		}
+		base.FieldByName("Sign").SetString(sign)
+	} else if vf.Elem().FieldByName("Sign").IsValid() && vf.Elem().FieldByName("NonceStr").IsValid() {
+		vf.Elem().FieldByName("NonceStr").SetString(NewRandStr(32))
+		var sign string
+		if mr.isHmacSign {
+			if vf.Elem().FieldByName("SignType").IsValid() {
+				vf.Elem().FieldByName("SignType").SetString(mch_api.MchSignTypeHMACSHA256)
+				sign = mr.account.signHmacSha256(mr.sendData)
+			}
+		} else {
+			sign = mr.account.signMd5(mr.sendData)
+		}
+		vf.Elem().FieldByName("Sign").SetString(sign)
 	}
-	base.FieldByName("Sign").SetString(sign)
+
 	return
 }
