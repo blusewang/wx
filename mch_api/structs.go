@@ -15,7 +15,7 @@ import (
 
 type MchBase struct {
 	XMLName  xml.Name `xml:"xml"`
-	MchId    string   `xml:"mch_id"`
+	MchId    string   `xml:"mch_id,omitempty"`
 	AppId    string   `xml:"appid,omitempty"`
 	NonceStr string   `xml:"nonce_str"`
 	Sign     string   `xml:"sign"`
@@ -271,6 +271,7 @@ type RedPackInfoRes struct {
 
 type TransferData struct {
 	MchBase
+	MchId          string `xml:"mchid"`
 	MchAppId       string `xml:"mch_appid"`
 	PartnerTradeNo string `xml:"partner_trade_no"`
 	OpenId         string `xml:"openid"`
@@ -283,8 +284,8 @@ type TransferData struct {
 
 type TransferRes struct {
 	MchBaseResponse
-	MchAppId       string `xml:"mch_appid"`
 	MchId          string `xml:"mchid"`
+	MchAppId       string `xml:"mch_appid"`
 	NonceStr       string `xml:"nonce_str"`
 	PartnerTradeNo string `xml:"partner_trade_no"`
 	PaymentNo      string `xml:"payment_no"`
