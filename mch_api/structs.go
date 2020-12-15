@@ -56,6 +56,7 @@ func (m MchBaseResponse) ToError() error {
 // 不设置，或设置为"N"，为普通定单
 type PayUnifiedOrderData struct {
 	MchBase
+	Openid         string `xml:"openid,omitempty"`
 	DeviceInfo     string `xml:"device_info"`
 	Body           string `xml:"body"`
 	OutTradeNo     string `xml:"out_trade_no"`

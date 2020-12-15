@@ -70,6 +70,8 @@ func (ma MchAccount) OrderSign(or mch_api.PayUnifiedOrderRes) map[string]interfa
 	data["signType"] = "MD5"
 	data["paySign"] = ma.orderSign(data)
 	delete(data, "appId")
+	data["timestamp"] = data["timeStamp"]
+	delete(data, "timeStamp")
 	return data
 }
 
