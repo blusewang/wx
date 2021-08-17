@@ -7,10 +7,10 @@
 package mp_api
 
 type MiniProgramJsCode2SessionQuery struct {
-	AppId     string `json:"appid"`
-	Secret    string `json:"secret"`
-	JsCode    string `json:"js_code"`
-	GrantType string `json:"grant_type"`
+	AppId     string `url:"appid"`
+	Secret    string `url:"secret"`
+	JsCode    string `url:"js_code"`
+	GrantType string `url:"grant_type"`
 }
 
 type MiniProgramJsCode2SessionRes struct {

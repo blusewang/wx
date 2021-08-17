@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-// 消息通知`query`数据
+// MessageQuery 消息通知`query`数据
 type MessageQuery struct {
 	Signature    string `param:"signature" binding:"required"`
 	Timestamp    string `param:"timestamp" binding:"required"`
@@ -24,7 +24,7 @@ type MessageQuery struct {
 	MsgSignature string `param:"msg_signature"`
 }
 
-// 安全验证
+// Validate 安全验证
 func (mq MessageQuery) Validate(PrivateToken string) (err error) {
 	arr := []string{PrivateToken, mq.Timestamp, mq.Nonce}
 	sort.Strings(arr)
@@ -37,7 +37,7 @@ func (mq MessageQuery) Validate(PrivateToken string) (err error) {
 	return
 }
 
-// 公众号消息
+// MessageData 公众号消息
 type MessageData struct {
 	ToUserName   string  `xml:"ToUserName" json:"to_user_name,omitempty"`
 	Encrypt      string  `xml:"Encrypt" json:"encrypt,omitempty"`
