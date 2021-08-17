@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-// 应用账号
+// MpAccount 应用账号
 // ServerHost 默认为：mp_api.ServerHostUniversal
 type MpAccount struct {
 	AppId          string            `json:"app_id"`
@@ -23,7 +23,7 @@ type MpAccount struct {
 	ServerHost     mp_api.ServerHost `json:"server_host"`
 }
 
-// 读取通知消息
+// ReadMessage 读取通知消息
 func (ma MpAccount) ReadMessage(req *http.Request) (q mp_api.MessageQuery, msg mp_api.MessageData, err error) {
 	if err = params.Unmarshal(req.URL.Query(), &q); err != nil {
 		return
@@ -45,7 +45,7 @@ func (ma MpAccount) ReadMessage(req *http.Request) (q mp_api.MessageQuery, msg m
 	return
 }
 
-// 微信网页的网址签名
+// UrlSign 微信网页的网址签名
 func (ma MpAccount) UrlSign(u string) (d map[string]interface{}) {
 	data := make(map[string]interface{})
 	data["noncestr"] = NewRandStr(32)
@@ -63,7 +63,7 @@ func (ma MpAccount) UrlSign(u string) (d map[string]interface{}) {
 	return
 }
 
-// 新建一个请求
+// NewMpReq 新建一个请求
 func (ma MpAccount) NewMpReq(path mp_api.MpApi) *mpReq {
 	return &mpReq{account: ma, path: path}
 }

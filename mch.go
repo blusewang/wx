@@ -27,7 +27,7 @@ import (
 
 var cache = make(map[string]*http.Client)
 
-// 商户账号
+// MchAccount 商户账号
 type MchAccount struct {
 	MchId           string
 	MchKey          string
@@ -36,17 +36,17 @@ type MchAccount struct {
 	MchRSAPublicKey []byte // 加密银行卡信息时用的公钥
 }
 
-// 创建请求
+// NewMchReqWithApp 创建请求
 func (ma MchAccount) NewMchReqWithApp(api mch_api.MchApi, appId string) (req *mchReq) {
 	return &mchReq{account: ma, privateClient: cache[ma.MchId], api: api, appId: appId}
 }
 
-// 创建请求
+// NewMchReq 创建请求
 func (ma MchAccount) NewMchReq(api mch_api.MchApi) (req *mchReq) {
 	return &mchReq{account: ma, privateClient: cache[ma.MchId], api: api}
 }
 
-// 订单签名给App
+// OrderSign4App 订单签名给App
 func (ma MchAccount) OrderSign4App(or mch_api.PayUnifiedOrderRes) map[string]interface{} {
 	data := make(map[string]interface{})
 	data["appid"] = or.AppId
@@ -60,7 +60,7 @@ func (ma MchAccount) OrderSign4App(or mch_api.PayUnifiedOrderRes) map[string]int
 	return data
 }
 
-// 订单签名，适用于H5、小程序
+// OrderSign 订单签名，适用于H5、小程序
 func (ma MchAccount) OrderSign(or mch_api.PayUnifiedOrderRes) map[string]interface{} {
 	data := make(map[string]interface{})
 	data["appId"] = or.AppId
@@ -75,7 +75,7 @@ func (ma MchAccount) OrderSign(or mch_api.PayUnifiedOrderRes) map[string]interfa
 	return data
 }
 
-// 验证支付成功通知
+// PayNotify 验证支付成功通知
 func (ma MchAccount) PayNotify(pn mch_api.PayNotify) bool {
 	if !pn.IsSuccess() || pn.Sign == "" {
 		return false
@@ -93,7 +93,7 @@ func (ma MchAccount) PayNotify(pn mch_api.PayNotify) bool {
 	return false
 }
 
-// 银行卡机要信息加密
+// RsaEncrypt 银行卡机要信息加密
 func (ma MchAccount) RsaEncrypt(plain string) (out string) {
 	block, _ := pem.Decode(ma.MchRSAPublicKey)
 	publicKey, err := x509.ParsePKCS1PublicKey(block.Bytes)
@@ -146,13 +146,23 @@ func (ma MchAccount) newPrivateClient() (cli http.Client, err error) {
 		return
 	}
 	cert.PrivateKey = key
-	cli = http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				Certificates: []tls.Certificate{cert},
-			},
-			DisableCompression: true,
-		},
+	cli = *client()
+	cli.Transport.(*mt).t.TLSClientConfig = &tls.Config{
+		Certificates: []tls.Certificate{cert},
 	}
+	cli.Transport.(*mt).t.DisableCompression = true
+	//cli = http.Client{
+	//	Transport: &http.Transport{
+	//		TLSClientConfig: &tls.Config{
+	//			Certificates: []tls.Certificate{cert},
+	//		},
+	//		DisableCompression: true,
+	//	},
+	//}
 	return
+}
+
+// NewMchReqV3 创建请求
+func (ma MchAccount) NewMchReqV3(api mch_api.MchApi) (req *mchReqV3) {
+	return &mchReqV3{account: ma, api: api, hashHandler: sha256.New()}
 }

@@ -71,7 +71,7 @@ type MessageData struct {
 	AppId        string  `xml:"-" json:"app_id,omitempty"`
 }
 
-// 公众号消息解密
+// ShouldDecode 公众号消息解密
 func (msg *MessageData) ShouldDecode(EncodingAESKey string) (err error) {
 	if msg.Encrypt == "" {
 		// 没加密

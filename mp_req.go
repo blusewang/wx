@@ -30,20 +30,20 @@ type mpReq struct {
 	err      error
 }
 
-// 填充查询信息
+// Query 填充查询信息
 // access_token 会自动填充，无需指定
 func (mp *mpReq) Query(d interface{}) *mpReq {
 	mp.param = d
 	return mp
 }
 
-// 填充POST里的Body数据
+// SendData 填充POST里的Body数据
 func (mp *mpReq) SendData(d interface{}) *mpReq {
 	mp.sendData = d
 	return mp
 }
 
-// 绑定请求结果的解码数据体
+// Bind 绑定请求结果的解码数据体
 func (mp *mpReq) Bind(d interface{}) *mpReq {
 	if reflect.ValueOf(d).Kind() != reflect.Ptr {
 		mp.err = errors.New("mp.Bind must be Ptr")
@@ -52,7 +52,7 @@ func (mp *mpReq) Bind(d interface{}) *mpReq {
 	return mp
 }
 
-// 执行
+// Do 执行
 func (mp *mpReq) Do() (err error) {
 	if mp.err != nil {
 		return mp.err
@@ -73,7 +73,7 @@ func (mp *mpReq) Do() (err error) {
 	var apiUrl = fmt.Sprintf("https://%v/%v?%v", mp.account.ServerHost, mp.path, v.Encode())
 	var resp *http.Response
 	if mp.sendData == nil {
-		resp, err = http.Get(apiUrl)
+		resp, err = client().Get(apiUrl)
 	} else {
 		var buf = new(bytes.Buffer)
 		var coder = json.NewEncoder(buf)
@@ -81,7 +81,7 @@ func (mp *mpReq) Do() (err error) {
 		if err = coder.Encode(mp.sendData); err != nil {
 			return
 		}
-		resp, err = http.Post(apiUrl, "application/json", buf)
+		resp, err = client().Post(apiUrl, "application/json", buf)
 	}
 	if err != nil {
 		return
@@ -145,7 +145,7 @@ func (mp *mpReq) Upload(reader io.Reader, fileExtension string) (err error) {
 	if err = w.Close(); err != nil {
 		return
 	}
-	resp, err := http.Post(apiUrl, w.FormDataContentType(), body)
+	resp, err := client().Post(apiUrl, w.FormDataContentType(), body)
 	if err != nil {
 		return
 	}

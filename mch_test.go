@@ -7,14 +7,23 @@
 package wx
 
 import (
+	"bytes"
 	"github.com/blusewang/wx/mch_api"
+	"io/ioutil"
 	"log"
+	"net/http"
 	"reflect"
 	"testing"
 )
 
 func TestMchAccount_NewMchReq(t *testing.T) {
 	log.SetFlags(log.Ltime | log.Lshortfile)
+	SetClientMiddleware(func(req *http.Request, res *http.Response, err error) {
+		log.Println(req, res, err)
+		raw, _ := ioutil.ReadAll(res.Body)
+		log.Println(string(raw))
+		res.Body = ioutil.NopCloser(bytes.NewReader(raw))
+	})
 	mch := MchAccount{
 		MchId:           "",
 		MchKey:          "",
@@ -35,7 +44,7 @@ func TestMchAccount_NewMchReq(t *testing.T) {
 			Description: "",
 		},
 	})
-	err := mch.NewMchReqWithApp(mch_api.PayProfitSharing, "").
+	err := mch.NewMchReqWithApp(mch_api.PayProfitSharing, "wxbb4d55eb95f282f4").
 		Send(&body).
 		UseHMacSign().
 		UsePrivateCert().

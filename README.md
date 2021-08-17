@@ -140,6 +140,12 @@ wechat weixin sdk，支持微信应用和商户。
 	log.Println(data)
 ```
 
+# 商户账号API（V3版）
+功能初步实现。
+
+# 简易中间件
+`SetClientMiddleware(middleware func(req *http.Request,res *http.Response,err error))` 将每一次网络交互过程都开放出来，以便做自定义日志。
+
 # 为微信业务数据提供的额外工具方法 
 - `NewRandStr` 生成符合微信要求随机字符
 - `LimitString` 限制长度，并将微信不支持的字符替换成'x'，能满足公众号App的字符要求

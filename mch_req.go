@@ -32,34 +32,34 @@ type mchReq struct {
 	err             error
 }
 
-// 填充POST里的Body数据
+// Send 填充POST里的Body数据
 func (mr *mchReq) Send(data interface{}) *mchReq {
 	mr.sendData = data
 	return mr
 }
 
-// 使用 HMAC-SHA256 签名
+// UseHMacSign 使用 HMAC-SHA256 签名
 // 默认采用 MD5 签名
 func (mr *mchReq) UseHMacSign() *mchReq {
 	mr.isHmacSign = true
 	return mr
 }
 
-// 使用私有证书通信
+// UsePrivateCert 使用私有证书通信
 func (mr *mchReq) UsePrivateCert() *mchReq {
 	mr.isPrivateClient = true
 	return mr
 }
 
-// 绑定请求结果的解码数据体
+// Bind 绑定请求结果的解码数据体
 func (mr *mchReq) Bind(data interface{}) *mchReq {
 	mr.res = data
 	return mr
 }
 
-// 执行
+// Do 执行
 func (mr *mchReq) Do() (err error) {
-	var cli = *http.DefaultClient
+	var cli http.Client
 	if mr.isPrivateClient {
 		if privateClientCache[mr.account.MchId] != nil {
 			cli = *privateClientCache[mr.account.MchId]

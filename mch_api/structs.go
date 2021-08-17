@@ -31,17 +31,17 @@ type MchBaseResponse struct {
 	ErrCodeDes string   `xml:"err_code_des,omitempty"`
 }
 
-// 是否成功处理
+// IsSuccess 是否成功处理
 func (m MchBaseResponse) IsSuccess() bool {
 	return m.ReturnCode == "SUCCESS" && m.ResultCode == "SUCCESS" && (m.ErrCode == "SUCCESS" || m.ErrCode == "")
 }
 
-// 如果出错，是否是微信程序错误
+// IsUnCertain 如果出错，是否是微信程序错误
 func (m MchBaseResponse) IsUnCertain() bool {
 	return m.ErrCode == "SYSTEMERROR"
 }
 
-// 转为Golang错误
+// ToError 转为Golang错误
 func (m MchBaseResponse) ToError() error {
 	if m.ErrCodeDes != "" {
 		return errors.New(fmt.Sprintf("%v %v", m.ErrCode, m.ErrCodeDes))
@@ -52,7 +52,7 @@ func (m MchBaseResponse) ToError() error {
 	}
 }
 
-// `ProfitSharing`设置为"Y"为分账定单标记。
+// PayUnifiedOrderData `ProfitSharing`设置为"Y"为分账定单标记。
 // 不设置，或设置为"N"，为普通定单
 type PayUnifiedOrderData struct {
 	MchBase
@@ -74,7 +74,7 @@ type PayUnifiedOrderRes struct {
 	PrepayId string `xml:"prepay_id"`
 }
 
-// 支付成功通知
+// PayNotify 支付成功通知
 type PayNotify struct {
 	MchBaseResponse
 	MchBase
@@ -108,7 +108,7 @@ type PayNotify struct {
 	TimeEnd            string `xml:"time_end"`
 }
 
-// 回复支付成功通知
+// PayNotifyRes 回复支付成功通知
 type PayNotifyRes MchBaseResponse
 
 type PayOrderQueryData struct {
@@ -141,7 +141,7 @@ type PayRefundRes struct {
 	CashFee       int64  `xml:"cash_fee"`
 }
 
-// 分账结果中的接收者
+// PayProfitSharingReceiver 分账结果中的接收者
 type PayProfitSharingReceiver struct {
 	Type        string `json:"type"`
 	Account     string `json:"account"`
