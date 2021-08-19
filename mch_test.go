@@ -18,7 +18,7 @@ import (
 
 func TestMchAccount_NewMchReq(t *testing.T) {
 	log.SetFlags(log.Ltime | log.Lshortfile)
-	SetClientMiddleware(func(req *http.Request, reqBody []byte, res *http.Response, err error) {
+	RegisterHook(func(req *http.Request, reqBody []byte, res *http.Response, err error) {
 		log.Println(req, res, err)
 		raw, _ := ioutil.ReadAll(res.Body)
 		log.Println(string(raw))

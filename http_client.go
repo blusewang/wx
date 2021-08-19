@@ -13,7 +13,7 @@ import (
 )
 
 var _cli *http.Client
-var _middleware func(req *http.Request, reqBody []byte, res *http.Response, err error)
+var _hook func(req *http.Request, reqBody []byte, res *http.Response, err error)
 
 type mt struct {
 	t http.Transport
@@ -26,8 +26,8 @@ func (m *mt) RoundTrip(req *http.Request) (res *http.Response, err error) {
 		req.Body = ioutil.NopCloser(bytes.NewReader(reqBody))
 	}
 	res, err = m.t.RoundTrip(req)
-	if _middleware != nil {
-		_middleware(req, reqBody, res, err)
+	if _hook != nil {
+		_hook(req, reqBody, res, err)
 	}
 	return
 }
@@ -39,6 +39,6 @@ func client() *http.Client {
 	return _cli
 }
 
-func SetClientMiddleware(middleware func(req *http.Request, reqBody []byte, res *http.Response, err error)) {
-	_middleware = middleware
+func RegisterHook(hook func(req *http.Request, reqBody []byte, res *http.Response, err error)) {
+	_hook = hook
 }

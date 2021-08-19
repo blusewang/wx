@@ -137,7 +137,7 @@ func TestLimitString2(t *testing.T) {
 
 func TestClientMiddleware(t *testing.T) {
 	log.SetFlags(log.Ltime | log.Lshortfile)
-	log.Println(_middleware == nil)
+	log.Println(_hook == nil)
 	cli := &http.Client{Transport: &mt{http.Transport{}}}
 	log.Println(cli.Get("https://cashier.mywsy.cn"))
 }

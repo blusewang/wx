@@ -17,7 +17,7 @@ import (
 
 func TestMt_RoundTrip(t *testing.T) {
 	log.SetFlags(log.Ltime | log.Lshortfile)
-	SetClientMiddleware(func(req *http.Request, reqBody []byte, res *http.Response, err error) {
+	RegisterHook(func(req *http.Request, reqBody []byte, res *http.Response, err error) {
 		var data struct {
 			Method  string `json:"method"`
 			Url     string `json:"url"`
