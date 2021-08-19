@@ -7,20 +7,27 @@
 package wx
 
 import (
+	"bytes"
+	"io/ioutil"
 	"net/http"
 )
 
 var _cli *http.Client
-var _middleware func(req *http.Request, res *http.Response, err error)
+var _middleware func(req *http.Request, reqBody []byte, res *http.Response, err error)
 
 type mt struct {
 	t http.Transport
 }
 
 func (m *mt) RoundTrip(req *http.Request) (res *http.Response, err error) {
+	var reqBody []byte
+	if req.Body != nil {
+		reqBody, _ = ioutil.ReadAll(req.Body)
+		req.Body = ioutil.NopCloser(bytes.NewReader(reqBody))
+	}
 	res, err = m.t.RoundTrip(req)
 	if _middleware != nil {
-		_middleware(req, res, err)
+		_middleware(req, reqBody, res, err)
 	}
 	return
 }
@@ -32,6 +39,6 @@ func client() *http.Client {
 	return _cli
 }
 
-func SetClientMiddleware(middleware func(req *http.Request, res *http.Response, err error)) {
+func SetClientMiddleware(middleware func(req *http.Request, reqBody []byte, res *http.Response, err error)) {
 	_middleware = middleware
 }
