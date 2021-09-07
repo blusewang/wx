@@ -143,8 +143,8 @@ wechat weixin sdk，支持微信应用和商户。
 # 商户账号API（V3版）
 功能初步实现。
 
-# 简易中间件
-`SetClientMiddleware(middleware func(req *http.Request,res *http.Response,err error))` 将每一次网络交互过程都开放出来，以便做自定义日志。
+# API Hook，同时支持两个类型的所有API
+`RegisterHook(hook func(req *http.Request, reqBody []byte, res *http.Response, err error))` 将每一次网络交互过程都开放出来，以便做自定义日志。
 
 # 为微信业务数据提供的额外工具方法 
 - `NewRandStr` 生成符合微信要求随机字符
