@@ -9,6 +9,7 @@ package wx
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/blusewang/wx/mch_api"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -38,11 +39,12 @@ func TestMt_RoundTrip(t *testing.T) {
 		log.Println(string(raw), err)
 	})
 
-	var buf = new(bytes.Buffer)
-	var coder = json.NewEncoder(buf)
-	coder.SetEscapeHTML(false)
-	if err := coder.Encode(map[string]string{"a": "b"}); err != nil {
-		return
+	var mch = MchAccount{
+		MchId:           "",
+		MchKey:          "",
+		MchSSLCert:      nil,
+		MchSSLKey:       nil,
+		MchRSAPublicKey: nil,
 	}
-	log.Println(client().Post("https://www.baidu.com", "text/json", buf))
+	mch.NewMchReq(mch_api.PayOrderQuery)
 }

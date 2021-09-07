@@ -7,6 +7,7 @@
 package wx
 
 import (
+	"crypto/aes"
 	"crypto/hmac"
 	"crypto/md5"
 	rand2 "crypto/rand"
@@ -17,6 +18,7 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
+	"encoding/xml"
 	"errors"
 	"fmt"
 	"github.com/blusewang/wx/mch_api"
@@ -91,6 +93,25 @@ func (ma MchAccount) PayNotify(pn mch_api.PayNotify) bool {
 		}
 	}
 	return false
+}
+
+// DecryptRefundNotify 验证支付成功通知
+func (ma MchAccount) DecryptRefundNotify(rn mch_api.RefundNotify) (body mch_api.RefundNotifyBody, err error) {
+	raw, err := base64.StdEncoding.DecodeString(rn.ReqInfo)
+	if err != nil {
+		return
+	}
+	block, err := aes.NewCipher([]byte(fmt.Sprintf("%x", md5.Sum([]byte(ma.MchKey)))))
+	length := len(raw)
+	size := block.BlockSize()
+	decrypted := make([]byte, len(raw))
+	for bs, be := 0, size; bs < len(raw); bs, be = bs+size, be+size {
+		block.Decrypt(decrypted[bs:be], raw[bs:be])
+	}
+	up := int(decrypted[length-1])
+	decrypted = decrypted[:length-up]
+	err = xml.Unmarshal(decrypted, &body)
+	return
 }
 
 // RsaEncrypt 银行卡机要信息加密

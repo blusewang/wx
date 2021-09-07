@@ -59,16 +59,17 @@ func (mr *mchReq) Bind(data interface{}) *mchReq {
 
 // Do 执行
 func (mr *mchReq) Do() (err error) {
-	var cli http.Client
+	var cli = client()
 	if mr.isPrivateClient {
 		if privateClientCache[mr.account.MchId] != nil {
-			cli = *privateClientCache[mr.account.MchId]
+			cli = privateClientCache[mr.account.MchId]
 		} else {
-			cli, err = mr.account.newPrivateClient()
+			_cli, err := mr.account.newPrivateClient()
 			if err != nil {
-				return
+				return err
 			}
-			privateClientCache[mr.account.MchId] = &cli
+			cli = &_cli
+			privateClientCache[mr.account.MchId] = cli
 		}
 	}
 	if err = mr.sign(); err != nil {

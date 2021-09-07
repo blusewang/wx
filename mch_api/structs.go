@@ -120,13 +120,13 @@ type PayOrderQueryRes PayNotify
 
 type PayRefundData struct {
 	MchBase
-	TransactionId string `xml:"transaction_id"`
-	OutTradeNo    string `xml:"out_trade_no"`
+	TransactionId string `xml:"transaction_id,omitempty"`
+	OutTradeNo    string `xml:"out_trade_no,omitempty"`
 	OutRefundNo   string `xml:"out_refund_no"`
 	TotalFee      int64  `xml:"total_fee"`
 	RefundFee     int64  `xml:"refund_fee"`
-	RefundDesc    string `xml:"refund_desc"`
-	NotifyUrl     string `xml:"notify_url"`
+	RefundDesc    string `xml:"refund_desc,omitempty"`
+	NotifyUrl     string `xml:"notify_url,omitempty"`
 }
 
 type PayRefundRes struct {
@@ -303,4 +303,29 @@ type PublicKeyData struct {
 type PublicKeyRes struct {
 	MchBaseResponse
 	PubKey string `xml:"pub_key"`
+}
+
+// RefundNotify 退款状态通知消息
+type RefundNotify struct {
+	MchBaseResponse
+	MchBase
+	ReqInfo string `xml:"req_info"`
+}
+
+// RefundNotifyBody 退款状态通知内容
+type RefundNotifyBody struct {
+	XMLName             xml.Name `xml:"root"`
+	TransactionId       string   `xml:"transaction_id"`
+	OutTradeNo          string   `xml:"out_trade_no"`
+	RefundId            string   `xml:"refund_id"`
+	OutRefundNo         string   `xml:"out_refund_no"`
+	TotalFee            int64    `xml:"total_fee"`
+	SettlementTotalFee  int64    `xml:"settlement_total_fee,omitempty"`
+	RefundFee           int64    `xml:"refund_fee"`
+	SettlementRefundFee int64    `xml:"settlement_refund_fee"`
+	RefundStatus        string   `xml:"refund_status"`
+	SuccessTime         string   `xml:"success_time,omitempty"`
+	RefundRecvAccount   string   `xml:"refund_recv_account"`
+	RefundAccount       string   `xml:"refund_account"`
+	RefundRequestSource string   `xml:"refund_request_source"`
 }
