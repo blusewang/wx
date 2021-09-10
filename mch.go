@@ -27,7 +27,7 @@ import (
 	"time"
 )
 
-var cache = make(map[string]*http.Client)
+//var cache = make(map[string]*http.Client)
 
 // MchAccount 商户账号
 type MchAccount struct {
@@ -40,12 +40,12 @@ type MchAccount struct {
 
 // NewMchReqWithApp 创建请求
 func (ma MchAccount) NewMchReqWithApp(api mch_api.MchApi, appId string) (req *mchReq) {
-	return &mchReq{account: ma, privateClient: cache[ma.MchId], api: api, appId: appId}
+	return &mchReq{account: ma, api: api, appId: appId}
 }
 
 // NewMchReq 创建请求
 func (ma MchAccount) NewMchReq(api mch_api.MchApi) (req *mchReq) {
-	return &mchReq{account: ma, privateClient: cache[ma.MchId], api: api}
+	return &mchReq{account: ma, api: api}
 }
 
 // OrderSign4App 订单签名给App
@@ -143,7 +143,7 @@ func (ma MchAccount) orderSign(data map[string]interface{}) string {
 	return fmt.Sprintf("%X", md5.Sum([]byte(mapSortByKey(data)+"&key="+ma.MchKey)))
 }
 
-func (ma MchAccount) newPrivateClient() (cli http.Client, err error) {
+func (ma MchAccount) newPrivateClient() (cli *http.Client, err error) {
 	block, restPem := pem.Decode(ma.MchSSLCert)
 	if block == nil {
 		err = errors.New("pem解析失败")
@@ -167,7 +167,7 @@ func (ma MchAccount) newPrivateClient() (cli http.Client, err error) {
 		return
 	}
 	cert.PrivateKey = key
-	cli = *client()
+	cli = client()
 	cli.Transport.(*mt).t.TLSClientConfig = &tls.Config{
 		Certificates: []tls.Certificate{cert},
 	}

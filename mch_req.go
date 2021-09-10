@@ -17,12 +17,12 @@ import (
 	"strings"
 )
 
-var privateClientCache = make(map[string]*http.Client)
+//var privateClientCache = make(map[string]*http.Client)
 
 // 商户请求
 type mchReq struct {
-	account         MchAccount
-	privateClient   *http.Client // 私有加密传输客户端
+	account MchAccount
+	//privateClient   *http.Client // 私有加密传输客户端
 	api             mch_api.MchApi
 	appId           string
 	isHmacSign      bool
@@ -59,19 +59,6 @@ func (mr *mchReq) Bind(data interface{}) *mchReq {
 
 // Do 执行
 func (mr *mchReq) Do() (err error) {
-	var cli = client()
-	if mr.isPrivateClient {
-		if privateClientCache[mr.account.MchId] != nil {
-			cli = privateClientCache[mr.account.MchId]
-		} else {
-			_cli, err := mr.account.newPrivateClient()
-			if err != nil {
-				return err
-			}
-			cli = &_cli
-			privateClientCache[mr.account.MchId] = cli
-		}
-	}
 	if err = mr.sign(); err != nil {
 		return
 	}
@@ -83,6 +70,15 @@ func (mr *mchReq) Do() (err error) {
 	api := fmt.Sprintf("https://api.mch.weixin.qq.com/%v", mr.api)
 	if strings.HasPrefix(string(mr.api), "http") {
 		api = string(mr.api)
+	}
+	var cli *http.Client
+	if mr.isPrivateClient {
+		cli, err = mr.account.newPrivateClient()
+		if err != nil {
+			return err
+		}
+	} else {
+		cli = client()
 	}
 	resp, err := cli.Post(api, "application/xml", buf)
 	if err != nil {
