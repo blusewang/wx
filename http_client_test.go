@@ -48,3 +48,8 @@ func TestMt_RoundTrip(t *testing.T) {
 	}
 	mch.NewMchReq(mch_api.PayOrderQuery)
 }
+
+func TestRegisterHook(t *testing.T) {
+	log.SetFlags(log.Ltime | log.Lshortfile)
+	log.Println(client().Get("https://httpbin.org/delay/6"))
+}

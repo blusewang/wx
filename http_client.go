@@ -10,10 +10,11 @@ import (
 	"bytes"
 	"io/ioutil"
 	"net/http"
+	"time"
 )
 
 var _cli *http.Client
-var _hook func(req *http.Request, reqBody []byte, res *http.Response, err error)
+var _hook func(req *http.Request, reqBody []byte, res *http.Response, startAt time.Time, stopAt time.Time, err error)
 
 type mt struct {
 	t http.Transport
@@ -25,9 +26,10 @@ func (m *mt) RoundTrip(req *http.Request) (res *http.Response, err error) {
 		reqBody, _ = ioutil.ReadAll(req.Body)
 		req.Body = ioutil.NopCloser(bytes.NewReader(reqBody))
 	}
+	t := time.Now()
 	res, err = m.t.RoundTrip(req)
 	if _hook != nil {
-		_hook(req, reqBody, res, err)
+		_hook(req, reqBody, res, t, time.Now(), err)
 	}
 	return
 }
@@ -39,6 +41,6 @@ func client() *http.Client {
 	return _cli
 }
 
-func RegisterHook(hook func(req *http.Request, reqBody []byte, res *http.Response, err error)) {
+func RegisterHook(hook func(req *http.Request, reqBody []byte, res *http.Response, startAt time.Time, stopAt time.Time, err error)) {
 	_hook = hook
 }
