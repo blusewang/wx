@@ -14,11 +14,12 @@ import (
 	"log"
 	"net/http"
 	"testing"
+	"time"
 )
 
 func TestMt_RoundTrip(t *testing.T) {
 	log.SetFlags(log.Ltime | log.Lshortfile)
-	RegisterHook(func(req *http.Request, reqBody []byte, res *http.Response, err error) {
+	RegisterHook(func(req *http.Request, reqBody []byte, res *http.Response, startAt time.Time, stopAt time.Time, err error) {
 		var data struct {
 			Method  string `json:"method"`
 			Url     string `json:"url"`

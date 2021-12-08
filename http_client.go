@@ -13,7 +13,6 @@ import (
 	"time"
 )
 
-var _cli *http.Client
 var _hook func(req *http.Request, reqBody []byte, res *http.Response, startAt time.Time, stopAt time.Time, err error)
 
 type mt struct {
@@ -35,10 +34,7 @@ func (m *mt) RoundTrip(req *http.Request) (res *http.Response, err error) {
 }
 
 func client() *http.Client {
-	if _cli == nil {
-		_cli = &http.Client{Transport: &mt{http.Transport{}}}
-	}
-	return _cli
+	return &http.Client{Transport: &mt{http.Transport{}}}
 }
 
 func RegisterHook(hook func(req *http.Request, reqBody []byte, res *http.Response, startAt time.Time, stopAt time.Time, err error)) {
