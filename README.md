@@ -16,8 +16,14 @@ wechat weixin sdk，支持微信应用和商户。
 - 应用类账号下的Api
 - 商户类账号下的Api
 
+遵守**高内聚，低耦合**的设计哲学。
+
+所有同类型的请求，都能复用，封装聚合。其它零散的功能都封装成独立函数，按需调用。
+
+所有的接口、请求数据、请求结果数据，都是开放的；可以使用我提供的数据，也能自行设计。
+
 ## 安装
-	go get github.com/blusewang/wechat
+	go get github.com/blusewang/wx
 
 # 应用账号API
 `订阅号`、`服务号`、`小程序`、`App`
@@ -31,25 +37,26 @@ wechat weixin sdk，支持微信应用和商户。
 
 对此不满的，完全可以在使用本库的基础上，采用自己熟悉的方式、甚至自己设计方案来替代`crontab`。
 
-## 核心设计
-### 算法
+## 程序设计
+### 对象设计
 一个基础账号对象`MpAccount`，它有三个行为：
 - 为微信H5的网址签名 `UrlSign(url string)`
 - 读取被动消息通知 `ReadMessage(req *http.Request)`
 - 主动发出请求 `NewMpReq(path mp_api.MpApi) *mpReq`
 
-### 数据结构
-- 常量：[constant.go](https://github.com/blusewang/wechat/blob/master/mp_api/constant.go)
-- 基础信息：[basic_information.go](https://github.com/blusewang/wechat/blob/master/mp_api/basic_information.go)
-- 自定义菜单：[custom_menus.go](https://github.com/blusewang/wechat/blob/master/mp_api/custom_menus.go)
-- 消息：[message.go](https://github.com/blusewang/wechat/blob/master/mp_api/message.go)
-- 媒体文件上传：[media.go](https://github.com/blusewang/wechat/blob/master/mp_api/media.go)
-- 微信网页开发：[oa_web_apps.go](https://github.com/blusewang/wechat/blob/master/mp_api/oa_web_apps.go)
-- 用户管理：[user.go](https://github.com/blusewang/wechat/blob/master/mp_api/user.go)
-- 账号管理：[account.go](https://github.com/blusewang/wechat/blob/master/mp_api/account.go)
-- 对话能力：[guide.go](https://github.com/blusewang/wechat/blob/master/mp_api/guide.go)
-- 小程序：[mini_program.go](https://github.com/blusewang/wechat/blob/master/mp_api/mini_program.go)
+### 数据设计
+- 常量：[constant.go](https://github.com/blusewang/wx/blob/master/mp_api/constant.go)
+- 基础信息：[basic_information.go](https://github.com/blusewang/wx/blob/master/mp_api/basic_information.go)
+- 自定义菜单：[custom_menus.go](https://github.com/wx/wechat/blob/master/mp_api/custom_menus.go)
+- 消息：[message.go](https://github.com/blusewang/wx/blob/master/mp_api/message.go)
+- 媒体文件上传：[media.go](https://github.com/blusewang/wx/blob/master/mp_api/media.go)
+- 微信网页开发：[oa_web_apps.go](https://github.com/blusewang/wx/blob/master/mp_api/oa_web_apps.go)
+- 用户管理：[user.go](https://github.com/blusewang/wx/blob/master/mp_api/user.go)
+- 账号管理：[account.go](https://github.com/blusewang/wx/blob/master/mp_api/account.go)
+- 对话能力：[guide.go](https://github.com/blusewang/wx/blob/master/mp_api/guide.go)
+- 小程序：[mini_program.go](https://github.com/blusewang/wx/blob/master/mp_api/mini_program.go)
 
+### 说明
 只实现了很有限的数据。若需要使用本库自带的数据结构之外的API。完全可以参考本库的数据结构写法，自行另起书写(注意不同业务的tag名称不同)。
 并能得到一样的兼容体验！
 
@@ -97,19 +104,20 @@ wechat weixin sdk，支持微信应用和商户。
 - [x] 支持`MD5`、`HMAC-SHA256`加密
 - [x] 支持付款至银行卡时，隐私信息加密
 
-## 核心设计
-### 算法
-一个基础账号对象`MchAccount`，它有以下行为：
+## 程序设计
+### 对象设计
+一个基础账号对象`MchAccount`，它有以下适用于V2的行为：
 - 创建请求 `NewMchReq(url string)`
 - 将订单签名给App `OrderSign4App(or mch_api.PayUnifiedOrderRes)`
 - 将订单签名给于H5、小程序 `OrderSign(or mch_api.PayUnifiedOrderRes)`
 - 验证支付成功通知 `PayNotify(pn mch_api.PayNotify)`
 - 付款至银行卡时，隐私信息项加密 `RsaEncrypt(plain string)`
 
-### 数据结构
-- 常量：[constant.go](https://github.com/blusewang/wechat/blob/master/mch_api/constant.go)
-- 数据结构：[structs.go](https://github.com/blusewang/wechat/blob/master/mch_api/structs.go)
+### 数据设计
+- 常量：[constant.go](https://github.com/blusewang/wx/blob/master/mch_api/constant.go)
+- 数据结构：[structs.go](https://github.com/blusewang/wx/blob/master/mch_api/structs.go)
 
+### 说明
 只实现了很有限的数据。若需要使用本库自带的数据结构之外的API。完全可以参考本库的数据结构写法，自行另起书写(建议参考structs.go中的方式书写)。
 能得到一样的兼容体验！
 
@@ -140,8 +148,48 @@ wechat weixin sdk，支持微信应用和商户。
 	log.Println(data)
 ```
 
-# 商户账号API（V3版）
-功能初步实现。
+# 商户账号API（V3版）（含服务商）
+`App、JSAPI、小程序等支付` `分账` `付款至微信零钱` `付款至个人银行卡` `服务商系列接口`
+- [x] 支持付款至银行卡时，隐私信息加密
+- [x] 自动签名
+- [x] 自动下载微信支付官方证书
+
+## 程序设计
+### 对象设计
+一个基础账号对象`MchAccount`，它有以下适用于V3的行为：
+- 创建请求 `NewMchReqV3(api mch_api_v3.MchApiV3)`
+- 获取微信支付官方证书 `LoadV3Cert()`
+- AEAD_AES_256_GCM 解密 `DecryptAES256GCM(nonce, associatedData, ciphertext string)`
+- V3版通用签名 `SignBaseV3(message string)`
+
+### 数据设计
+- 常量：[constant.go](https://github.com/blusewang/wx/blob/master/mch_api_v3/constant.go)
+- 基础支付业务数据结构：[base.go](https://github.com/blusewang/wx/blob/master/mch_api_v3/base.go)
+- 服务商基础支付业务数据结构：[base.go](https://github.com/blusewang/wx/blob/master/mch_api_v3/partner_base.go)
+
+### 说明
+如果程序长时间运行，需要给`LoadV3Cert()`做一个定时更新的任务。按自己的需求自行实现。
+如果不实现，`LoadV3Cert()`只会在第一次操作V3接口时获取一次。
+
+## 举例
+```go
+    mch := wx.MchAccount{}
+
+	var res mch_api_v3.JsApiTransactionResp
+	err = mch.NewMchReqV3(mch_api_v3.JsApiTransaction).Send(&mch_api_v3.JsApiTransactionReq{
+		AppId:       constant.WxAppMember,
+		MchId:       mch.MchId,
+		Description: "this is a description",
+		OutTradeNo:  wx.NewRandStr(22),
+		NotifyUrl:   "https://yourdomain.name/notify/url",
+		Amount:      mch_api_v3.Amount{Total: 100},
+		Payer:       mch_api_v3.Payer{OpenId: "oEG8Ss_yCRB315jjLfdTRK-QicdY"},
+	}).Bind(&res).Do(http.MethodPost)
+	if err != nil {
+		t.Fatal(err)
+	}
+	log.Println(res)
+```
 
 # API Hook，同时支持两个类型的所有API
 `RegisterHook(hook func(req *http.Request, reqBody []byte, res *http.Response, err error))` 将每一次网络交互过程都开放出来，以便做自定义日志。

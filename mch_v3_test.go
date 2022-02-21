@@ -28,9 +28,9 @@ import (
 
 func TestNewRandStr(t *testing.T) {
 	log.SetFlags(log.Ltime | log.Lshortfile)
-	mchId := ""
-	sslCrt := []byte("")
-	sslKey := []byte("")
+	mchId := "1276387801"
+	sslCrt := []byte("-----BEGIN CERTIFICATE-----\nMIID8DCCAtigAwIBAgIUXbQoC1THyO2teqJpuMEqWWl5iwcwDQYJKoZIhvcNAQEL\nBQAwXjELMAkGA1UEBhMCQ04xEzARBgNVBAoTClRlbnBheS5jb20xHTAbBgNVBAsT\nFFRlbnBheS5jb20gQ0EgQ2VudGVyMRswGQYDVQQDExJUZW5wYXkuY29tIFJvb3Qg\nQ0EwHhcNMjAxMjMxMDYxNzMwWhcNMjUxMjMwMDYxNzMwWjCBgTETMBEGA1UEAwwK\nMTI3NjM4NzgwMTEbMBkGA1UECgwS5b6u5L+h5ZWG5oi357O757ufMS0wKwYDVQQL\nDCTljJfkuqzlo7nmraXmk43kvZznp5HmioDmnInpmZDlhazlj7gxCzAJBgNVBAYM\nAkNOMREwDwYDVQQHDAhTaGVuWmhlbjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCC\nAQoCggEBAKwbbmr7yld9XUd6THxVx47bBYLriEC2/Y89o+ohblvJj4N2DmF5cJWA\naRRs9i1l9zcGgxQvkufxyf88/KOh4wckmEbBsS/ozbJ2v0W8Ft30Kcf6UL0/Kod0\ni3j/pwgDlJcS0X6UTCByIeCDm0m/RKFGQWUSZy6Gt7zE8KdWucLCaPSfO3RHEJfc\n50isGqdMtoU2nJqkiD71KZUNZMFoc55SNzN08cHCYpfysMhMvtaBcmFTtK/u4fru\n4RCOHdOXq5OzUhb4wvuscLzDfwfz1ZxCnq5GepQV0y7JL9o4XGcNqlYSsuT+0tOU\nQ1/eYkD6DLizXfkLo6AfR0eMdR/zVEMCAwEAAaOBgTB/MAkGA1UdEwQCMAAwCwYD\nVR0PBAQDAgTwMGUGA1UdHwReMFwwWqBYoFaGVGh0dHA6Ly9ldmNhLml0cnVzLmNv\nbS5jbi9wdWJsaWMvaXRydXNjcmw/Q0E9MUJENDIyMEU1MERCQzA0QjA2QUQzOTc1\nNDk4NDZDMDFDM0U4RUJEMjANBgkqhkiG9w0BAQsFAAOCAQEAE2gzOwbl5NE7QvRq\nqhXfW6UDA4cTDTZ5HRojNhdM6YyFLwXnIXngVH+aNH4AlpJ3/VczUHIv5T6+GheE\nGROeQO/Iouv21lTX+bS/Y72bBlwLwfwkRGUogmsbGH8szJuPLamkbaOoA2HGaCOu\nQLNdaYTGlpXOk69w7zWV7YMb7Tq2i1ACi5lYCMeaNgM697kQKKoNdcka6OoZeBff\nczwbbLVtxN+a75rgLZWhG1a5suh/Stte5EWe3dZcWjVtyPbMpBjYhAjg5byeAZVk\nntBPwx708DkrDCFNmnk+DV2Z6rKWA0axJb95YxPDdlSb6ofER1KtjTzL9bHzVho2\n2y+Rqw==\n-----END CERTIFICATE-----")
+	sslKey := []byte("-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCsG25q+8pXfV1H\nekx8VceO2wWC64hAtv2PPaPqIW5byY+Ddg5heXCVgGkUbPYtZfc3BoMUL5Ln8cn/\nPPyjoeMHJJhGwbEv6M2ydr9FvBbd9CnH+lC9PyqHdIt4/6cIA5SXEtF+lEwgciHg\ng5tJv0ShRkFlEmcuhre8xPCnVrnCwmj0nzt0RxCX3OdIrBqnTLaFNpyapIg+9SmV\nDWTBaHOeUjczdPHBwmKX8rDITL7WgXJhU7Sv7uH67uEQjh3Tl6uTs1IW+ML7rHC8\nw38H89WcQp6uRnqUFdMuyS/aOFxnDapWErLk/tLTlENf3mJA+gy4s135C6OgH0dH\njHUf81RDAgMBAAECggEAJVMppjAHGORKR4chcVGVHsknL9ZuzUIiSV9f3hXz/hn/\ncs42njMdFH8tys06smvLqnZSFR2gKYdJfH44eDBSsSjhkW7OQ4qkmZChOLlq6CXc\nrc7+lZxOV+QRn2MqUVWdcwoUvvPgcqTt7ef81IiTlLpM0mOkVvXGgTzgyBnJ3Y+6\nvPgALGAWTVxngyDkyK1BbAr4zeMweX5uiC0daCkKBNYIOJUDGtBIeu2JYOo63/s8\ng4RcgYOL1rYmAZM6bfhdI4uAn6IQN8nHtcUlwCkrTRkECQb7g8oh5ysXpSFkA59x\ngzowQQbo9cJoPLsldyn5Us3oVUILrnDHOE/yEWhGcQKBgQDgiAZhSDSxIKVbRdUq\n1Waq4+1V6Odb120CjZvXk5o0/nr0D+xIp05r5CKx33m4jAMj5EV4w8QDLSbmub0z\nA16yf3Q2KL12X7V9P7lRIttJaGYcSARVoIHm+Srvr/3eooAB0LxsWrMQB6ErihW9\nUS5ZK3/GIKoJxGvqueMTk/M+WwKBgQDEOnmr5LRuB3EYtW+kMlUaic9W/1VY/TFM\nt3EpqNE/1VpHN2WB5SGlH6qGoymFO8adVH7cVjgjekwZQIynI9GHqUN7n8vhtmyB\nH1PbDbtPlqZT7bS09X5QcGPuo9xXdOpcqV2iNz265T/XR1vHNRQnUQ5uvVbCUlpx\nqVMZJs32OQKBgQDAAvNZzDLratyd8lk6eSaEa8iyGCuKOe8KKOml8J8GRL4G63sI\nIrOIxp74+ACS1oF09yiF/vwoLzu+QgbPkkkwYpiSHELx8SU2iAFFpoZa/4GbG+dB\nBrMwP9L9CMcU1mibpNMN4n6Q7cVhg4PV04/MR8vMNnDTS3tyTycmvfZdUwKBgGgt\nBzVb2PJlHwTYJioM0qOhMCNmsP/qg4bQCNLuHhD+iswuO8SnSaJpWlXaP4vNPVd/\naU4+s9UZ81agr0t4t5+HHB2Aq3PsLlSqthEgjCXnu+vo0bwUbPf1gwhJlAwWNOn2\nvJAHNc2IMclvx+jNZCKvZLMj7/CAWiXnmAdNU6D5AoGAN4c0EsKkmSdKuHmwJQLI\nziHuMFfTf8ahsLAEPabHwe3OZM0pbGHsxp0Yd+98jN8nyEgraES1r4scKi8Ksg+y\nSX9fqtlwwvQHP6/INNTOcRviCUCuh4+kD7jhz0bENu1Oa/u9/jDUatMA2LAtoPVx\nsY96UkR0maga41wGvMW5UdY=\n-----END PRIVATE KEY-----")
 
 	cb, _ := pem.Decode(sslCrt)
 	pubKey, err := x509.ParseCertificate(cb.Bytes)
@@ -80,16 +80,16 @@ func TestNewRandStr(t *testing.T) {
 	}
 
 	log.Println(pubKey.PublicKey.(*rsa.PublicKey))
-	log.Printf("%X\n", pubKey.SerialNumber)
+	log.Printf("pubKey.SerialNumber: %X\n", pubKey.SerialNumber)
 	h.Reset()
 	h.Write([]byte(str))
 	err = rsa.VerifyPKCS1v15(pubKey.PublicKey.(*rsa.PublicKey), crypto.SHA256, h.Sum(nil), signRaw)
 	if err != nil {
-		log.Println(err)
+		log.Println(">>>>>>>>>>", err)
 	}
 
 	for s, strings := range resp.Header {
-		log.Println(s, strings)
+		log.Println("resp.Header ->", s, strings)
 	}
 
 	var res struct {

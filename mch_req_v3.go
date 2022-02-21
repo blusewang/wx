@@ -7,32 +7,31 @@
 package wx
 
 import (
-	"crypto"
-	rand2 "crypto/rand"
-	"crypto/rsa"
-	"crypto/sha256"
+	"bytes"
 	"crypto/x509"
-	"encoding/base64"
 	"encoding/json"
-	"encoding/pem"
+	"errors"
 	"fmt"
-	"github.com/blusewang/wx/mch_api"
-	"hash"
+	"github.com/blusewang/wx/mch_api_v3"
+	"io/ioutil"
+	"log"
 	"net/http"
+	"strings"
+	"time"
+)
+
+var (
+	// wechatPayCerts 微信支付官方证书缓存
+	wechatPayCerts = make(map[string]*x509.Certificate)
 )
 
 // 商户请求
 type mchReqV3 struct {
-	account     MchAccount
-	cert        *x509.Certificate
-	privateKey  *rsa.PrivateKey
-	hashHandler hash.Hash
-	api         mch_api.MchApi
-	ts          int64
-	nonceStr    string
-	sendData    interface{}
-	res         interface{}
-	err         error
+	account  MchAccount
+	api      mch_api_v3.MchApiV3
+	sendData interface{}
+	res      interface{}
+	err      error
 }
 
 // Send 填充POST里的Body数据
@@ -48,45 +47,73 @@ func (mr *mchReqV3) Bind(data interface{}) *mchReqV3 {
 }
 
 // Do 执行
-func (mr *mchReqV3) Do() (err error) {
-
-	return
+func (mr *mchReqV3) Do(method string) (err error) {
+	if len(wechatPayCerts) == 0 {
+		wechatPayCerts[""] = nil
+		if err = mr.account.DownloadV3Cert(); err != nil {
+			return
+		}
+	}
+	var buf = new(bytes.Buffer)
+	if mr.sendData != nil {
+		if err = json.NewEncoder(buf).Encode(mr.sendData); err != nil {
+			return
+		}
+	}
+	api := fmt.Sprintf("https://api.mch.weixin.qq.com/v3/%v", mr.api)
+	if strings.HasPrefix(string(mr.api), "http") {
+		api = string(mr.api)
+	}
+	var cli = client()
+	req, err := http.NewRequest(method, api, bytes.NewReader(buf.Bytes()))
+	if err != nil {
+		return
+	}
+	if err = mr.sign(req, buf.Bytes()); err != nil {
+		return
+	}
+	resp, err := cli.Do(req)
+	if err != nil {
+		return
+	}
+	raw, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return
+	}
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusAccepted && resp.StatusCode != http.StatusNoContent {
+		var rs mch_api_v3.ErrorResp
+		_ = json.Unmarshal(raw, &rs)
+		log.Println(api, rs, resp.Header.Get("Request-ID"))
+		return errors.New(fmt.Sprintf("%v | Request-ID:%v", rs.Message, resp.Header.Get("Request-ID")))
+	}
+	if mr.api != mch_api_v3.OtherCertificates {
+		if err = mr.account.VerifyV3(resp, raw); err != nil {
+			return
+		}
+	}
+	if resp.StatusCode == http.StatusOK {
+		return json.Unmarshal(raw, &mr.res)
+	} else {
+		return
+	}
 }
 
-func (mr *mchReqV3) prepareCert() (err error) {
-	cb, _ := pem.Decode(mr.account.MchSSLCert)
-	mr.cert, err = x509.ParseCertificate(cb.Bytes)
-	if err != nil {
-		return
-	}
-	cb, _ = pem.Decode(mr.account.MchSSLKey)
-	key, err := x509.ParsePKCS8PrivateKey(cb.Bytes)
-	if err != nil {
-		return
-	}
-	mr.privateKey = key.(*rsa.PrivateKey)
-	mr.hashHandler = sha256.New()
-	return
-}
-
-func (mr *mchReqV3) sign(request *http.Request, body interface{}) (err error) {
-	raw, err := json.Marshal(body)
-	if err != nil {
-		return
-	}
-	mr.nonceStr = NewRandStr(32)
-	str := fmt.Sprintf("%v\n%v\n%v\n%v\n%v\n", request.Method, request.URL.Path, mr.ts, mr.nonceStr, string(raw))
-	mr.hashHandler.Reset()
-	mr.hashHandler.Write([]byte(str))
-	signRaw, err := rsa.SignPKCS1v15(rand2.Reader, mr.privateKey, crypto.SHA256, mr.hashHandler.Sum(nil))
-	if err != nil {
-		return
-	}
-
-	request.Header.Set("Authorization", fmt.Sprintf(`WECHATPAY2-SHA256-RSA2048 mchid="%v",nonce_str="%v",signature="%v",timestamp="%v",serial_no="%X"`,
-		mr.account.MchId, mr.nonceStr, base64.StdEncoding.EncodeToString(signRaw), mr.ts, mr.cert.SerialNumber))
+func (mr *mchReqV3) sign(request *http.Request, body []byte) (err error) {
 	request.Header.Set("User-Agent", "Gdb/1.0")
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Accept", "application/json")
+	request.Header.Set("Wechatpay-Serial", fmt.Sprintf("%X", mr.account.certX509.SerialNumber))
+	if body == nil {
+		body = make([]byte, 0)
+	}
+	nonce := NewRandStr(32)
+	ts := time.Now().Unix()
+	sign, err := mr.account.SignBaseV3(fmt.Sprintf("%v\n%v\n%v\n%v\n%v\n", request.Method,
+		request.URL.Path, ts, nonce, string(body)))
+	if err != nil {
+		return
+	}
+	request.Header.Set("Authorization", fmt.Sprintf(`WECHATPAY2-SHA256-RSA2048 mchid="%v",nonce_str="%v",signature="%v",timestamp="%v",serial_no="%X"`,
+		mr.account.MchId, nonce, sign, ts, mr.account.certX509.SerialNumber))
 	return
 }

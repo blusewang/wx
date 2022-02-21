@@ -14,23 +14,18 @@ import (
 	"net/http"
 	"reflect"
 	"testing"
+	"time"
 )
 
 func TestMchAccount_NewMchReq(t *testing.T) {
 	log.SetFlags(log.Ltime | log.Lshortfile)
-	RegisterHook(func(req *http.Request, reqBody []byte, res *http.Response, err error) {
+	RegisterHook(func(req *http.Request, reqBody []byte, res *http.Response, startAt time.Time, stopAt time.Time, err error) {
 		log.Println(req, res, err)
 		raw, _ := ioutil.ReadAll(res.Body)
 		log.Println(string(raw))
 		res.Body = ioutil.NopCloser(bytes.NewReader(raw))
 	})
-	mch := MchAccount{
-		MchId:           "",
-		MchKey:          "",
-		MchSSLCert:      []byte(""),
-		MchSSLKey:       []byte(""),
-		MchRSAPublicKey: []byte(""),
-	}
+	mch, err := NewMchAccount("", "", nil, nil, nil)
 	var data mch_api.PayProfitSharingRes
 	var body = mch_api.PayProfitSharingData{
 		TransactionId: "4200000531202004307536721907",
@@ -44,7 +39,7 @@ func TestMchAccount_NewMchReq(t *testing.T) {
 			Description: "",
 		},
 	})
-	err := mch.NewMchReqWithApp(mch_api.PayProfitSharing, "wxbb4d55eb95f282f4").
+	err = mch.NewMchReqWithApp(mch_api.PayProfitSharing, "wxbb4d55eb95f282f4").
 		Send(&body).
 		UseHMacSign().
 		UsePrivateCert().
