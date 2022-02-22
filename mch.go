@@ -25,7 +25,6 @@ import (
 	"fmt"
 	"github.com/blusewang/wx/mch_api"
 	"github.com/blusewang/wx/mch_api_v3"
-	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -232,7 +231,6 @@ func (ma MchAccount) DownloadV3Cert() (err error) {
 		if err != nil {
 			return err
 		}
-		log.Println(string(ct))
 		cb, _ := pem.Decode(ct)
 		cert, err := x509.ParseCertificate(cb.Bytes)
 		if err != nil {
@@ -245,10 +243,6 @@ func (ma MchAccount) DownloadV3Cert() (err error) {
 
 // SignBaseV3 V3版通用签名
 func (ma MchAccount) SignBaseV3(message string) (sign string, err error) {
-	//pk, err := ma.getPrivateKey()
-	//if err != nil {
-	//	return
-	//}
 	s := sha256.New()
 	s.Write([]byte(message))
 	raw, err := rsa.SignPKCS1v15(rand2.Reader, ma.privateKey, crypto.SHA256, s.Sum(nil))

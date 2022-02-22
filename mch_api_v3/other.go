@@ -21,3 +21,7 @@ type OtherCertificatesResp struct {
 		} `json:"encrypt_certificate"`
 	} `json:"data"`
 }
+
+type OtherUploadResp struct {
+	MediaId string `json:"media_id"`
+}

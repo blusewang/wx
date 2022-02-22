@@ -41,11 +41,8 @@ func TestMt_RoundTrip(t *testing.T) {
 	})
 
 	var mch = MchAccount{
-		MchId:           "",
-		MchKey:          "",
-		MchSSLCert:      nil,
-		MchSSLKey:       nil,
-		MchRSAPublicKey: nil,
+		MchId:  "",
+		MchKey: "",
 	}
 	mch.NewMchReq(mch_api.PayOrderQuery)
 }

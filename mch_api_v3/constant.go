@@ -11,6 +11,8 @@ type MchApiV3 string
 const (
 	// OtherCertificates 获取平台证书列表
 	OtherCertificates = "certificates"
+	OtherUploadImage  = "merchant/media/upload"
+	OtherUploadVideo  = "merchant/media/video_upload"
 
 	// PartnerApplyment4Sub 特约商户进件申请单
 	PartnerApplyment4Sub = "applyment4sub/applyment/"

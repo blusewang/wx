@@ -111,7 +111,7 @@ func (mp *mpReq) Do() (err error) {
 	return
 }
 
-// 上传文档。
+// Upload 上传文档。
 // reader 一个打开的文件reader。
 // fileExtension 该文件的后缀名。
 func (mp *mpReq) Upload(reader io.Reader, fileExtension string) (err error) {

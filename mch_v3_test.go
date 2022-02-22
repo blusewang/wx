@@ -7,6 +7,7 @@
 package wx
 
 import (
+	"bytes"
 	"crypto"
 	"crypto/aes"
 	"crypto/cipher"
@@ -21,11 +22,30 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"testing"
 	"time"
 )
 
+func TestNewRandStrs(t *testing.T) {
+	log.SetFlags(log.Ltime | log.Lshortfile)
+	buf := new(bytes.Buffer)
+	f := multipart.NewWriter(buf)
+	r, err := f.CreateFormField("meta")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = json.NewEncoder(r).Encode(H{"filename": "x.jpg", "sha256": "435dfslkdjfa;sldkfja;sdf"}); err != nil {
+		t.Fatal(err)
+	}
+	r, err = f.CreateFormFile("file", "file.jpg")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, _ = r.Write([]byte("asdfasdf"))
+	log.Println(buf.String())
+}
 func TestNewRandStr(t *testing.T) {
 	log.SetFlags(log.Ltime | log.Lshortfile)
 	mchId := "1276387801"
