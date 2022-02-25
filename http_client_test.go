@@ -41,8 +41,9 @@ func TestMt_RoundTrip(t *testing.T) {
 	})
 
 	var mch = MchAccount{
-		MchId:  "",
-		MchKey: "",
+		MchId:    "",
+		MchKeyV2: "",
+		MchKeyV3: "",
 	}
 	mch.NewMchReq(mch_api.PayOrderQuery)
 }

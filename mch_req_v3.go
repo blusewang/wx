@@ -89,7 +89,7 @@ func (mr *mchReqV3) Do(method string) (err error) {
 		return errors.New(fmt.Sprintf("%v | Request-ID:%v", rs.Message, resp.Header.Get("Request-ID")))
 	}
 	if mr.api != mch_api_v3.OtherCertificates {
-		if err = mr.account.VerifyV3(resp, raw); err != nil {
+		if err = mr.account.VerifyV3(resp.Header, raw); err != nil {
 			return
 		}
 	}
@@ -165,7 +165,7 @@ func (mr *mchReqV3) Upload(fileName string, raw []byte) (err error) {
 		log.Println(api, rs, resp.Header.Get("Request-ID"))
 		return errors.New(fmt.Sprintf("%v | Request-ID:%v", rs.Message, resp.Header.Get("Request-ID")))
 	}
-	if err = mr.account.VerifyV3(resp, raw); err != nil {
+	if err = mr.account.VerifyV3(resp.Header, raw); err != nil {
 		return
 	}
 	if resp.StatusCode == http.StatusOK {
@@ -179,7 +179,10 @@ func (mr *mchReqV3) sign(request *http.Request, body []byte) (err error) {
 	request.Header.Set("User-Agent", "Gdb/1.0")
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Accept", "application/json")
-	request.Header.Set("Wechatpay-Serial", fmt.Sprintf("%X", mr.account.certX509.SerialNumber))
+	for s := range wechatPayCerts {
+		request.Header.Set("Wechatpay-Serial", s)
+	}
+	//request.Header.Set("Wechatpay-Serial", fmt.Sprintf("%X", wechatPayCerts[0].SerialNumber))
 	if body == nil {
 		body = make([]byte, 0)
 	}

@@ -13,7 +13,7 @@ type Amount struct {
 	Currency string `json:"currency,omitempty"`
 }
 type Payer struct {
-	OpenId string `json:"openid"`
+	OpenId string `json:"openid,omitempty"`
 }
 
 type JsApiTransactionReq struct {
@@ -26,7 +26,7 @@ type JsApiTransactionReq struct {
 	NotifyUrl   string `json:"notify_url"`
 	GoodsTag    string `json:"goods_tag,omitempty"`
 	Amount      Amount `json:"amount"`
-	Payer       Payer  `json:"payer"`
+	Payer       Payer  `json:"payer,omitempty"`
 }
 
 type JsApiTransactionResp struct {
@@ -80,4 +80,9 @@ type NotifyResource struct {
 	SceneInfo struct {
 		DeviceId string `json:"device_id,omitempty"`
 	} `json:"scene_info,omitempty"`
+}
+
+type NotifyResp struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
 }

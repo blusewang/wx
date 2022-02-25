@@ -6,18 +6,33 @@
 
 package mch_api_v3
 
+// PartnerApplymentSubjectType 主体类型
 type PartnerApplymentSubjectType string
 
 const (
-	PartnerApplymentSubjectTypePerson     = "SUBJECT_TYPE_INDIVIDUAL"
+	// PartnerApplymentSubjectTypePerson 个体户
+	PartnerApplymentSubjectTypePerson = "SUBJECT_TYPE_INDIVIDUAL"
+	// PartnerApplymentSubjectTypeEnterprise 企业
 	PartnerApplymentSubjectTypeEnterprise = "SUBJECT_TYPE_ENTERPRISE"
 )
 
+// PartnerApplymentIDType 证件类型
 type PartnerApplymentIDType string
 
-// PartnerApplymentIDCard 中国大陆居民-身份证
+// PartnerApplymentIDCard 银行账户类型
 const PartnerApplymentIDCard = "IDENTIFICATION_TYPE_IDCARD"
 
+// PartnerApplymentBankAccountType 银行账户类型
+type PartnerApplymentBankAccountType string
+
+const (
+	// PartnerApplymentBankAccountTypeCorporate 对公银行账户
+	PartnerApplymentBankAccountTypeCorporate = "BANK_ACCOUNT_TYPE_CORPORATE"
+	// PartnerApplymentBankAccountTypePersonal 经营者个人银行卡
+	PartnerApplymentBankAccountTypePersonal = "BANK_ACCOUNT_TYPE_PERSONAL"
+)
+
+// PartnerApplymentReq 进件申请单
 type PartnerApplymentReq struct {
 	BusinessCode string `json:"business_code"`
 	ContactInfo  struct {
@@ -64,21 +79,21 @@ type PartnerApplymentReq struct {
 		} `json:"sales_info"`
 	} `json:"business_info"`
 	SettlementInfo struct {
-		SettlementId   string   `json:"settlement_id"`
-		SettlementType string   `json:"settlement_type"`
-		Qualifications []string `json:"qualifications,omitempty"`
+		SettlementId      string   `json:"settlement_id"`
+		QualificationType string   `json:"qualification_type"`
+		Qualifications    []string `json:"qualifications,omitempty"`
 	} `json:"settlement_info"`
 	BankAccountInfo struct {
-		BankAccountType string `json:"bank_account_type"`
-		AccountName     string `json:"account_name"`
-		AccountBank     string `json:"account_bank"`
-		BankAddressCode string `json:"bank_address_code"`
-		BankBranchId    string `json:"bank_branch_id,omitempty"`
-		BankName        string `json:"bank_name,omitempty"`
-		AccountNumber   string `json:"account_number"`
+		BankAccountType PartnerApplymentBankAccountType `json:"bank_account_type"`
+		AccountName     string                          `json:"account_name"`
+		AccountBank     string                          `json:"account_bank"`
+		BankAddressCode string                          `json:"bank_address_code"`
+		BankBranchId    string                          `json:"bank_branch_id,omitempty"`
+		BankName        string                          `json:"bank_name,omitempty"`
+		AccountNumber   string                          `json:"account_number"`
 	} `json:"bank_account_info"`
 	AdditionInfo struct {
-		BusinessAdditionPics []string `json:"business_addition_pics"`
+		BusinessAdditionPics []string `json:"business_addition_pics,omitempty"`
 	} `json:"addition_info,omitempty"`
 }
 

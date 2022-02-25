@@ -33,7 +33,8 @@ import (
 // MchAccount 商户账号
 type MchAccount struct {
 	MchId          string
-	MchKey         string
+	MchKeyV2       string
+	MchKeyV3       string
 	certTls        tls.Certificate   // 我的证书 tls版 用于传输
 	certX509       *x509.Certificate // 我的证书 x509版 用于辅助加解密
 	privateKey     *rsa.PrivateKey   // 我的Key
@@ -41,10 +42,11 @@ type MchAccount struct {
 }
 
 // NewMchAccount 实例化商户账号
-func NewMchAccount(mchid, mchKey string, cert, key, pubKey []byte) (ma *MchAccount, err error) {
+func NewMchAccount(mchid, key2, key3 string, cert, key, pubKey []byte) (ma *MchAccount, err error) {
 	ma = &MchAccount{
-		MchId:  mchid,
-		MchKey: mchKey,
+		MchId:    mchid,
+		MchKeyV2: key2,
+		MchKeyV3: key3,
 	}
 	cb, _ := pem.Decode(cert)
 	if ma.certX509, err = x509.ParseCertificate(cb.Bytes); err != nil {
@@ -85,8 +87,8 @@ func (ma MchAccount) NewMchReq(api mch_api.MchApi) (req *mchReq) {
 }
 
 // OrderSign4App 订单签名给App
-func (ma MchAccount) OrderSign4App(or mch_api.PayUnifiedOrderRes) map[string]interface{} {
-	data := make(map[string]interface{})
+func (ma MchAccount) OrderSign4App(or mch_api.PayUnifiedOrderRes) H {
+	data := make(H)
 	data["appid"] = or.AppId
 	data["partnerid"] = or.MchId
 	data["prepayid"] = or.PrepayId
@@ -99,8 +101,8 @@ func (ma MchAccount) OrderSign4App(or mch_api.PayUnifiedOrderRes) map[string]int
 }
 
 // OrderSign 订单签名，适用于H5、小程序
-func (ma MchAccount) OrderSign(or mch_api.PayUnifiedOrderRes) map[string]interface{} {
-	data := make(map[string]interface{})
+func (ma MchAccount) OrderSign(or mch_api.PayUnifiedOrderRes) H {
+	data := make(H)
 	data["appId"] = or.AppId
 	data["timeStamp"] = strconv.FormatInt(time.Now().Unix(), 10)
 	data["nonceStr"] = NewRandStr(32)
@@ -137,7 +139,7 @@ func (ma MchAccount) DecryptRefundNotify(rn mch_api.RefundNotify) (body mch_api.
 	if err != nil {
 		return
 	}
-	block, err := aes.NewCipher([]byte(fmt.Sprintf("%x", md5.Sum([]byte(ma.MchKey)))))
+	block, err := aes.NewCipher([]byte(fmt.Sprintf("%x", md5.Sum([]byte(ma.MchKeyV2)))))
 	length := len(raw)
 	size := block.BlockSize()
 	decrypted := make([]byte, len(raw))
@@ -150,9 +152,23 @@ func (ma MchAccount) DecryptRefundNotify(rn mch_api.RefundNotify) (body mch_api.
 	return
 }
 
-// RsaEncrypt 机要信息加密 兼容V2/V3
+// RsaEncrypt 机要信息加密V2
 func (ma MchAccount) RsaEncrypt(plain string) (out string) {
 	raw, err := rsa.EncryptOAEP(sha1.New(), rand2.Reader, ma.publicKeyWxPay, []byte(plain), nil)
+	if err != nil {
+		return
+	}
+	out = base64.StdEncoding.EncodeToString(raw)
+	return
+}
+
+// RsaEncryptV3 机要信息加密V2
+func (ma MchAccount) RsaEncryptV3(plain string) (out string) {
+	var pk *x509.Certificate
+	for s := range wechatPayCerts {
+		pk = wechatPayCerts[s]
+	}
+	raw, err := rsa.EncryptOAEP(sha1.New(), rand2.Reader, pk.PublicKey.(*rsa.PublicKey), []byte(plain), nil)
 	if err != nil {
 		return
 	}
@@ -177,7 +193,7 @@ func (ma MchAccount) DecryptAES256GCM(nonce, associatedData, ciphertext string) 
 	if err != nil {
 		return
 	}
-	block, err := aes.NewCipher([]byte(ma.MchKey))
+	block, err := aes.NewCipher([]byte(ma.MchKeyV3))
 	if err != nil {
 		return
 	}
@@ -190,17 +206,17 @@ func (ma MchAccount) DecryptAES256GCM(nonce, associatedData, ciphertext string) 
 }
 
 func (ma MchAccount) signMd5(obj interface{}) string {
-	return fmt.Sprintf("%X", md5.Sum([]byte(mapSortByKey(obj2map(obj))+"&key="+ma.MchKey)))
+	return fmt.Sprintf("%X", md5.Sum([]byte(mapSortByKey(obj2map(obj))+"&key="+ma.MchKeyV2)))
 }
 
 func (ma MchAccount) signHmacSha256(obj interface{}) string {
-	hm := hmac.New(sha256.New, []byte(ma.MchKey))
-	hm.Write([]byte(mapSortByKey(obj2map(obj)) + "&key=" + ma.MchKey))
+	hm := hmac.New(sha256.New, []byte(ma.MchKeyV2))
+	hm.Write([]byte(mapSortByKey(obj2map(obj)) + "&key=" + ma.MchKeyV2))
 	return fmt.Sprintf("%X", hm.Sum(nil))
 }
 
 func (ma MchAccount) orderSign(data map[string]interface{}) string {
-	return fmt.Sprintf("%X", md5.Sum([]byte(mapSortByKey(data)+"&key="+ma.MchKey)))
+	return fmt.Sprintf("%X", md5.Sum([]byte(mapSortByKey(data)+"&key="+ma.MchKeyV2)))
 }
 
 func (ma MchAccount) newPrivateClient() (cli *http.Client, err error) {
@@ -253,23 +269,25 @@ func (ma MchAccount) SignBaseV3(message string) (sign string, err error) {
 	return
 }
 
-// VerifyV3 签名验证
-func (ma MchAccount) VerifyV3(resp *http.Response, body []byte) (err error) {
+// VerifyV3 验签
+func (ma MchAccount) VerifyV3(header http.Header, body []byte) (err error) {
 	if len(wechatPayCerts) == 0 {
-		return errors.New("没有下载微信支付证书")
+		if err = ma.DownloadV3Cert(); err != nil {
+			return
+		}
 	}
-	cert := wechatPayCerts[resp.Header.Get("Wechatpay-Serial")]
+	cert := wechatPayCerts[header.Get("Wechatpay-Serial")]
 	if cert == nil {
 		return errors.New("Wechatpay-Serial Error")
 	}
-	signRaw, err := base64.StdEncoding.DecodeString(resp.Header.Get("Wechatpay-Signature"))
+	signRaw, err := base64.StdEncoding.DecodeString(header.Get("Wechatpay-Signature"))
 	if err != nil {
 		return
 	}
 	s := sha256.New()
 	s.Write([]byte(fmt.Sprintf("%v\n%s\n%s\n",
-		resp.Header.Get("Wechatpay-Timestamp"),
-		resp.Header.Get("Wechatpay-Nonce"), string(body))))
+		header.Get("Wechatpay-Timestamp"),
+		header.Get("Wechatpay-Nonce"), string(body))))
 	return rsa.VerifyPKCS1v15(cert.PublicKey.(*rsa.PublicKey), crypto.SHA256, s.Sum(nil), signRaw)
 }
 
@@ -282,8 +300,7 @@ func (ma MchAccount) SignJSAPIV3(appId, prepayId string) (out H, err error) {
 		return
 	}
 	out = H{
-		"appId":     appId,
-		"timeStamp": fmt.Sprintf("%v", ts),
+		"timestamp": fmt.Sprintf("%v", ts),
 		"nonceStr":  nonce,
 		"package":   fmt.Sprintf("prepay_id=%v", prepayId),
 		"signType":  "RSA",
@@ -301,13 +318,12 @@ func (ma MchAccount) SignAppV3(appId, prepayId string) (out H, err error) {
 		return
 	}
 	out = H{
-		"appId":        appId,
-		"partnerId":    ma.MchId,
-		"prepayId":     prepayId,
-		"packageValue": "Sign=WXPay",
-		"nonceStr":     nonce,
-		"timeStamp":    fmt.Sprintf("%v", ts),
-		"sign":         s,
+		"partnerid": ma.MchId,
+		"prepayid":  prepayId,
+		"package":   "Sign=WXPay",
+		"noncestr":  nonce,
+		"timestamp": ts,
+		"sign":      s,
 	}
 	return
 }
