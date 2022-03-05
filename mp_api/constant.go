@@ -116,6 +116,19 @@ const (
 
 	// MiniProgramJsCode2Session 小程序
 	MiniProgramJsCode2Session = "sns/jscode2session" // 登录凭证校验
+
+	// OCR
+
+	// OcrBandCard 银行卡识别
+	OcrBandCard = "cv/ocr/bankcard"
+	// OcrBusinessLicense 营业执照识别
+	OcrBusinessLicense = "cv/ocr/bizlicense"
+	// OcrDrivingLicense 营业执照识别
+	OcrDrivingLicense = "cv/ocr/drivinglicense"
+	// OcrIdCard 营业执照识别
+	OcrIdCard = "cv/ocr/idcard"
+	// OcrText 普通文字识别
+	OcrText = "cv/ocr/comm"
 )
 
 type MessageCustomSendType string

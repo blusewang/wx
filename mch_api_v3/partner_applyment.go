@@ -98,7 +98,7 @@ type PartnerApplymentReq struct {
 }
 
 type PartnerApplymentResp struct {
-	ApplymentId uint64 `json:"applyment_id"`
+	ApplymentId int64 `json:"applyment_id"`
 }
 
 type PartnerApplymentState string
@@ -116,9 +116,9 @@ const (
 
 type PartnerApplymentQueryResp struct {
 	BusinessCode      string                `json:"business_code"`
-	ApplymentId       uint64                `json:"applyment_id"`
-	SubMchid          string                `json:"sub_mchid,omitempty"`
-	SignUrl           string                `json:"sign_url,omitempty"`
+	ApplymentId       int64                 `json:"applyment_id"`
+	SubMchid          *string               `json:"sub_mchid,omitempty"`
+	SignUrl           *string               `json:"sign_url,omitempty"`
 	ApplymentState    PartnerApplymentState `json:"applyment_state"`
 	ApplymentStateMsg string                `json:"applyment_state_msg"`
 	AuditDetail       []struct {
