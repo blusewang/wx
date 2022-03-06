@@ -122,8 +122,8 @@ type PartnerApplymentQueryResp struct {
 	ApplymentState    PartnerApplymentState `json:"applyment_state"`
 	ApplymentStateMsg string                `json:"applyment_state_msg"`
 	AuditDetail       []struct {
-		Field       string `json:"field"`
-		FieldName   string `json:"field_name"`
-		FieldReason string `json:"field_reason"`
+		Field        string `json:"field"`
+		FieldName    string `json:"field_name"`
+		RejectReason string `json:"reject_reason"`
 	} `json:"audit_detail,omitempty"`
 }
