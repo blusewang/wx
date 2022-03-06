@@ -234,6 +234,19 @@ func (ma MchAccount) NewMchReqV3(api mch_api_v3.MchApiV3) (req *mchReqV3) {
 	return
 }
 
+// GetCertificate 获取证书
+func (ma MchAccount) GetCertificate() (cert *x509.Certificate, err error) {
+	if len(wechatPayCerts) == 0 {
+		if err = ma.DownloadV3Cert(); err != nil {
+			return
+		}
+	}
+	for i := range wechatPayCerts {
+		return wechatPayCerts[i], nil
+	}
+	return
+}
+
 // DownloadV3Cert 获取微信支付官方证书
 func (ma MchAccount) DownloadV3Cert() (err error) {
 	var res mch_api_v3.OtherCertificatesResp

@@ -168,8 +168,8 @@ wechat weixin sdk，支持微信应用和商户。
 - 服务商基础支付业务数据结构：[base.go](https://github.com/blusewang/wx/blob/master/mch_api_v3/partner_base.go)
 
 ### 说明
-如果程序长时间运行，需要给`LoadV3Cert()`做一个定时更新的任务。按自己的需求自行实现。
-如果不实现，`LoadV3Cert()`只会在第一次操作V3接口时获取一次。
+如果程序长时间运行，需要给`DownloadV3Cert()`做一个定时更新的任务。按自己的需求自行实现。
+如果不实现，`DownloadV3Cert()`只会在第一次操作V3接口时获取一次。
 
 ## 举例
 ```go
