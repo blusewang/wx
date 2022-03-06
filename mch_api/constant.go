@@ -9,17 +9,32 @@ package mch_api
 type MchApi string
 
 const (
-	PayUnifiedOrder        = "pay/unifiedorder"                                  // 微信下单
-	PayOrderQuery          = "pay/orderquery"                                    // 支付结果查询
-	PayRefund              = "secapi/pay/refund"                                 // 退款
-	PayProfitSharing       = "secapi/pay/profitsharing"                          // 请求单次分账
-	PayProfitSharingFinish = "secapi/pay/profitsharingfinish"                    // 结束分账请求
-	BankPay                = "mmpaysptrans/pay_bank"                             // 企业付款到银行卡
-	BankQuery              = "mmpaysptrans/query_bank"                           // 付款到银行卡结果查询
-	RedPackSend            = "mmpaymkttransfers/sendredpack"                     // 发红包
-	RedPackInfo            = "mmpaymkttransfers/gethbinfo"                       // 红包状态查询
-	Transfer               = "mmpaymkttransfers/promotion/transfers"             // 企业付款至零钱
-	PublicKey              = "https://fraud.mch.weixin.qq.com/risk/getpublickey" // 获取RSA公钥API获取RSA公钥
+	// PayUnifiedOrder 微信下单
+	PayUnifiedOrder = "pay/unifiedorder"
+	// PayOrderQuery 支付结果查询
+	PayOrderQuery = "pay/orderquery"
+	// PayRefund 退款
+	PayRefund = "secapi/pay/refund"
+	// PayProfitSharing 请求单次分账
+	PayProfitSharing = "secapi/pay/profitsharing"
+	// PayProfitSharingFinish 结束分账请求
+	PayProfitSharingFinish = "secapi/pay/profitsharingfinish"
+	// BankPay 企业付款到银行卡
+	BankPay = "mmpaysptrans/pay_bank"
+	// BankQuery 付款到银行卡结果查询
+	BankQuery = "mmpaysptrans/query_bank"
+	// RedPackSend 发红包
+	RedPackSend = "mmpaymkttransfers/sendredpack"
+	// RedPackInfo 红包状态查询
+	RedPackInfo = "mmpaymkttransfers/gethbinfo"
+	// Transfer 企业付款至零钱
+	Transfer = "mmpaymkttransfers/promotion/transfers"
+	// PublicKey 获取RSA公钥API获取RSA公钥
+	PublicKey = "https://fraud.mch.weixin.qq.com/risk/getpublickey"
+	// MicroMerchantApplyment 小微商户进件
+	MicroMerchantApplyment = "applyment/micro/submit"
+	// MicroMerchantApplymentGetState 小微商户获取申请结果
+	MicroMerchantApplymentGetState = "applyment/micro/getstate"
 )
 
 type MchSignType string
