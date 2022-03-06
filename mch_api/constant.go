@@ -31,10 +31,6 @@ const (
 	Transfer = "mmpaymkttransfers/promotion/transfers"
 	// PublicKey 获取RSA公钥API获取RSA公钥
 	PublicKey = "https://fraud.mch.weixin.qq.com/risk/getpublickey"
-	// MicroMerchantApplyment 小微商户进件
-	MicroMerchantApplyment = "applyment/micro/submit"
-	// MicroMerchantApplymentGetState 小微商户获取申请结果
-	MicroMerchantApplymentGetState = "applyment/micro/getstate"
 )
 
 type MchSignType string

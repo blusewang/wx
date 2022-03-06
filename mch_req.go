@@ -17,8 +17,6 @@ import (
 	"strings"
 )
 
-//var privateClientCache = make(map[string]*http.Client)
-
 // 商户请求
 type mchReq struct {
 	account MchAccount
