@@ -21,10 +21,10 @@ import (
 	"encoding/base64"
 	"encoding/pem"
 	"encoding/xml"
-	"errors"
 	"fmt"
 	"github.com/blusewang/wx/mch_api"
 	"github.com/blusewang/wx/mch_api_v3"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -164,10 +164,7 @@ func (ma MchAccount) RsaEncrypt(plain string) (out string) {
 
 // RsaEncryptV3 机要信息加密V2
 func (ma MchAccount) RsaEncryptV3(plain string) (out string) {
-	var pk *x509.Certificate
-	for s := range wechatPayCerts {
-		pk = wechatPayCerts[s]
-	}
+	var pk = wechatPayCerts.GetCert()
 	raw, err := rsa.EncryptOAEP(sha1.New(), rand2.Reader, pk.PublicKey.(*rsa.PublicKey), []byte(plain), nil)
 	if err != nil {
 		return
@@ -236,25 +233,29 @@ func (ma MchAccount) NewMchReqV3(api mch_api_v3.MchApiV3) (req *mchReqV3) {
 
 // GetCertificate 获取证书
 func (ma MchAccount) GetCertificate() (cert *x509.Certificate, err error) {
-	if len(wechatPayCerts) == 0 {
+	if wechatPayCerts.IsEmpty() {
 		if err = ma.DownloadV3Cert(); err != nil {
 			return
 		}
 	}
-	for i := range wechatPayCerts {
-		return wechatPayCerts[i], nil
-	}
-	return
+	return wechatPayCerts.GetCert(), nil
 }
 
 // DownloadV3Cert 获取微信支付官方证书
 func (ma MchAccount) DownloadV3Cert() (err error) {
+	if wechatPayCerts.IsEmpty() {
+		wechatPayCerts.Add(PayCert{
+			SerialNo:      "",
+			EffectiveTime: time.Now(),
+			ExpireTime:    time.Now(),
+			cert:          nil,
+		})
+	}
 	var res mch_api_v3.OtherCertificatesResp
 	err = ma.NewMchReqV3(mch_api_v3.OtherCertificates).Bind(&res).Do(http.MethodGet)
 	if err != nil {
 		return
 	}
-	wechatPayCerts = make(map[string]*x509.Certificate)
 	for _, c := range res.Data {
 		ct, err := ma.DecryptAES256GCM(c.EncryptCertificate.Nonce, c.EncryptCertificate.AssociatedData, c.EncryptCertificate.Ciphertext)
 		if err != nil {
@@ -265,7 +266,12 @@ func (ma MchAccount) DownloadV3Cert() (err error) {
 		if err != nil {
 			return err
 		}
-		wechatPayCerts[c.SerialNo] = cert
+		wechatPayCerts.Add(PayCert{
+			SerialNo:      c.SerialNo,
+			EffectiveTime: c.EffectiveTime,
+			ExpireTime:    c.ExpireTime,
+			cert:          cert,
+		})
 	}
 	return
 }
@@ -284,14 +290,15 @@ func (ma MchAccount) SignBaseV3(message string) (sign string, err error) {
 
 // VerifyV3 验签
 func (ma MchAccount) VerifyV3(header http.Header, body []byte) (err error) {
-	if len(wechatPayCerts) == 0 {
+	if wechatPayCerts.IsEmpty() {
 		if err = ma.DownloadV3Cert(); err != nil {
 			return
 		}
 	}
-	cert := wechatPayCerts[header.Get("Wechatpay-Serial")]
+	cert := wechatPayCerts.GetCertBySerialNo(header.Get("Wechatpay-Serial"))
 	if cert == nil {
-		return errors.New("Wechatpay-Serial Error")
+		log.Println("未能在缓存中匹配到对方ID的证书", header.Get("Wechatpay-Serial"))
+		return nil
 	}
 	signRaw, err := base64.StdEncoding.DecodeString(header.Get("Wechatpay-Signature"))
 	if err != nil {

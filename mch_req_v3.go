@@ -9,7 +9,6 @@ package wx
 import (
 	"bytes"
 	"crypto/sha256"
-	"crypto/x509"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -24,7 +23,7 @@ import (
 
 var (
 	// wechatPayCerts 微信支付官方证书缓存
-	wechatPayCerts = make(map[string]*x509.Certificate)
+	wechatPayCerts = NewPayCerManager()
 )
 
 // 商户请求
@@ -50,8 +49,7 @@ func (mr *mchReqV3) Bind(data interface{}) *mchReqV3 {
 
 // Do 执行
 func (mr *mchReqV3) Do(method string) (err error) {
-	if len(wechatPayCerts) == 0 {
-		wechatPayCerts[""] = nil
+	if wechatPayCerts.IsEmpty() {
 		if err = mr.account.DownloadV3Cert(); err != nil {
 			return
 		}
@@ -103,8 +101,7 @@ func (mr *mchReqV3) Do(method string) (err error) {
 // Upload 上传图片视频
 func (mr *mchReqV3) Upload(fileName string, raw []byte) (err error) {
 	// 准备证书
-	if len(wechatPayCerts) == 0 {
-		wechatPayCerts[""] = nil
+	if wechatPayCerts.IsEmpty() {
 		if err = mr.account.DownloadV3Cert(); err != nil {
 			return
 		}
@@ -179,8 +176,8 @@ func (mr *mchReqV3) sign(request *http.Request, body []byte) (err error) {
 	request.Header.Set("User-Agent", "Gdb/1.0")
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Accept", "application/json")
-	for s := range wechatPayCerts {
-		request.Header.Set("Wechatpay-Serial", s)
+	if !wechatPayCerts.IsEmpty() {
+		request.Header.Set("Wechatpay-Serial", wechatPayCerts.GetSerialNo())
 	}
 	//request.Header.Set("Wechatpay-Serial", fmt.Sprintf("%X", wechatPayCerts[0].SerialNumber))
 	if body == nil {
