@@ -31,6 +31,18 @@ const (
 
 	// AppTransaction App下单
 	AppTransaction = "pay/transactions/app"
+
+	// ProfitSharingOrders 请求分账
+	ProfitSharingOrders = "profitsharing/orders"
+
+	// ProfitSharingOrdersUnfreeze 解冻剩余资金
+	ProfitSharingOrdersUnfreeze = "profitsharing/orders/unfreeze"
+
+	// ProfitSharingOrdersAdd 添加分账接收方
+	ProfitSharingOrdersAdd = "profitsharing/receivers/add"
+
+	// ProfitSharingOrdersDelete 删除分账接收方
+	ProfitSharingOrdersDelete = "profitsharing/receivers/delete"
 )
 
 type ErrorResp struct {

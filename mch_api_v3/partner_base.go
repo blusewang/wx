@@ -11,10 +11,10 @@ type PartnerPayer struct {
 	SubOpenid string `json:"sub_openid,omitempty"`
 }
 type PartnerJsApiTransactionReq struct {
-	SpAppId     string       `json:"sp_app_id"`
-	SpMchId     string       `json:"sp_mch_id"`
+	SpAppId     string       `json:"sp_appid"`
+	SpMchId     string       `json:"sp_mchid"`
 	SubAppid    string       `json:"sub_appid,omitempty"`
-	SubMchId    string       `json:"sub_mch_id"`
+	SubMchId    string       `json:"sub_mchid"`
 	Description string       `json:"description"`
 	OutTradeNo  string       `json:"out_trade_no"`
 	TimeExpire  string       `json:"time_expire,omitempty"`

@@ -92,7 +92,11 @@ func (mr *mchReqV3) Do(method string) (err error) {
 		}
 	}
 	if resp.StatusCode == http.StatusOK {
-		return json.Unmarshal(raw, &mr.res)
+		if mr.res != nil {
+			return json.Unmarshal(raw, &mr.res)
+		} else {
+			return
+		}
 	} else {
 		return
 	}
