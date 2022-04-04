@@ -183,22 +183,17 @@ func (mr *mchReqV3) sign(request *http.Request, body []byte) (err error) {
 	if !wechatPayCerts.IsEmpty() {
 		request.Header.Set("Wechatpay-Serial", wechatPayCerts.GetSerialNo())
 	}
-	//request.Header.Set("Wechatpay-Serial", fmt.Sprintf("%X", wechatPayCerts[0].SerialNumber))
 	if body == nil {
 		body = make([]byte, 0)
 	}
 	nonce := NewRandStr(32)
 	ts := time.Now().Unix()
 	sign, err := mr.account.SignBaseV3(fmt.Sprintf("%v\n%v\n%v\n%v\n%v\n", request.Method,
-		request.URL.Path, ts, nonce, string(body)))
+		request.URL.RequestURI(), ts, nonce, string(body)))
 	if err != nil {
 		return
 	}
 	request.Header.Set("Authorization", fmt.Sprintf(`WECHATPAY2-SHA256-RSA2048 mchid="%v",nonce_str="%v",signature="%v",timestamp="%v",serial_no="%X"`,
 		mr.account.MchId, nonce, sign, ts, mr.account.certX509.SerialNumber))
-	//log.Println(fmt.Sprintf("%v\n%v\n%v\n%v\n%v\n", request.Method,
-	//	request.URL.Path, ts, nonce, string(body)))
-	//log.Println("Authorization", fmt.Sprintf(`WECHATPAY2-SHA256-RSA2048 mchid="%v",nonce_str="%v",signature="%v",timestamp="%v",serial_no="%X"`,
-	//	mr.account.MchId, nonce, sign, ts, mr.account.certX509.SerialNumber))
 	return
 }

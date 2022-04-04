@@ -73,3 +73,9 @@ type ProfitSharingOrdersAddReq struct {
 	RelationType   string `json:"relation_type"`
 	CustomRelation string `json:"custom_relation,omitempty"`
 }
+
+type ProfitSharingOrdersDeleteReq struct {
+	AppId   string `json:"appid"`
+	Type    string `json:"type"`
+	Account string `json:"account"`
+}
