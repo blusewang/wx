@@ -8,25 +8,30 @@ package mch_api_v3
 
 import "time"
 
-type Amount struct {
+type TransactionAmount struct {
 	Total    int64  `json:"total"`
 	Currency string `json:"currency,omitempty"`
 }
-type Payer struct {
+type TransactionPayer struct {
 	OpenId string `json:"openid,omitempty"`
 }
 
+type TransactionSettleInfo struct {
+	ProfitSharing bool `json:"profit_sharing"`
+}
+
 type JsApiTransactionReq struct {
-	AppId       string `json:"appid"`
-	MchId       string `json:"mchid"`
-	Description string `json:"description"`
-	OutTradeNo  string `json:"out_trade_no"`
-	TimeExpire  string `json:"time_expire,omitempty"`
-	Attach      string `json:"attach,omitempty"`
-	NotifyUrl   string `json:"notify_url"`
-	GoodsTag    string `json:"goods_tag,omitempty"`
-	Amount      Amount `json:"amount"`
-	Payer       Payer  `json:"payer,omitempty"`
+	AppId       string                 `json:"appid"`
+	MchId       string                 `json:"mchid"`
+	Description string                 `json:"description"`
+	OutTradeNo  string                 `json:"out_trade_no"`
+	TimeExpire  string                 `json:"time_expire,omitempty"`
+	Attach      string                 `json:"attach,omitempty"`
+	NotifyUrl   string                 `json:"notify_url"`
+	GoodsTag    string                 `json:"goods_tag,omitempty"`
+	Amount      TransactionAmount      `json:"amount"`
+	Payer       TransactionPayer       `json:"payer"`
+	SettleInfo  *TransactionSettleInfo `json:"settle_info,omitempty"`
 }
 
 type JsApiTransactionResp struct {

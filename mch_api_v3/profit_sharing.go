@@ -14,7 +14,9 @@ type ProfitSharingOrdersReqReceiver struct {
 	Description string `json:"description"`
 }
 type ProfitSharingOrdersReq struct {
+	SubMchid        string                           `json:"sub_mchid,omitempty"`
 	AppId           string                           `json:"appid"`
+	SubAppid        string                           `json:"sub_appid,omitempty"`
 	TransactionId   string                           `json:"transaction_id"`
 	OutOrderNo      string                           `json:"out_order_no"`
 	UnfreezeUnsplit bool                             `json:"unfreeze_unsplit"`
@@ -58,6 +60,7 @@ type ProfitSharingOrdersQueryResp struct {
 }
 
 type ProfitSharingOrdersUnfreezeReq struct {
+	SubMchid      string `json:"sub_mchid,omitempty"`
 	TransactionId string `json:"transaction_id"`
 	OutOrderNo    string `json:"out_order_no"`
 	Description   string `json:"description"`
@@ -66,7 +69,9 @@ type ProfitSharingOrdersUnfreezeReq struct {
 type ProfitSharingOrdersUnfreezeResp ProfitSharingOrdersQueryResp
 
 type ProfitSharingOrdersAddReq struct {
+	SubMchid       string `json:"sub_mchid,omitempty"`
 	AppId          string `json:"appid"`
+	SubAppid       string `json:"sub_appid,omitempty"`
 	Type           string `json:"type"`
 	Account        string `json:"account"`
 	Name           string `json:"name,omitempty"`
@@ -75,7 +80,9 @@ type ProfitSharingOrdersAddReq struct {
 }
 
 type ProfitSharingOrdersDeleteReq struct {
-	AppId   string `json:"appid"`
-	Type    string `json:"type"`
-	Account string `json:"account"`
+	SubMchid string `json:"sub_mchid,omitempty"`
+	AppId    string `json:"appid"`
+	SubAppid string `json:"sub_appid,omitempty"`
+	Type     string `json:"type"`
+	Account  string `json:"account"`
 }

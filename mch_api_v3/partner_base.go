@@ -11,18 +11,19 @@ type PartnerPayer struct {
 	SubOpenid string `json:"sub_openid,omitempty"`
 }
 type PartnerJsApiTransactionReq struct {
-	SpAppId     string       `json:"sp_appid"`
-	SpMchId     string       `json:"sp_mchid"`
-	SubAppid    string       `json:"sub_appid,omitempty"`
-	SubMchId    string       `json:"sub_mchid"`
-	Description string       `json:"description"`
-	OutTradeNo  string       `json:"out_trade_no"`
-	TimeExpire  string       `json:"time_expire,omitempty"`
-	Attach      string       `json:"attach,omitempty"`
-	NotifyUrl   string       `json:"notify_url"`
-	GoodsTag    string       `json:"goods_tag,omitempty"`
-	Amount      Amount       `json:"amount"`
-	Payer       PartnerPayer `json:"payer"`
+	SpAppId     string                 `json:"sp_appid"`
+	SpMchId     string                 `json:"sp_mchid"`
+	SubAppid    string                 `json:"sub_appid,omitempty"`
+	SubMchId    string                 `json:"sub_mchid"`
+	Description string                 `json:"description"`
+	OutTradeNo  string                 `json:"out_trade_no"`
+	TimeExpire  string                 `json:"time_expire,omitempty"`
+	Attach      string                 `json:"attach,omitempty"`
+	NotifyUrl   string                 `json:"notify_url"`
+	GoodsTag    string                 `json:"goods_tag,omitempty"`
+	Amount      TransactionAmount      `json:"amount"`
+	Payer       PartnerPayer           `json:"payer"`
+	SettleInfo  *TransactionSettleInfo `json:"settle_info,omitempty"`
 }
 
 type PartnerJsApiTransactionResp JsApiTransactionResp
