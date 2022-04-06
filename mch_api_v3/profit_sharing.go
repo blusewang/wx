@@ -86,3 +86,8 @@ type ProfitSharingOrdersDeleteReq struct {
 	Type     string `json:"type"`
 	Account  string `json:"account"`
 }
+
+type ProfitSharingMerchantConfigsResp struct {
+	SubMchid string `json:"sub_mchid"`
+	MaxRatio int64  `json:"max_ratio"`
+}

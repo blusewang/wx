@@ -43,6 +43,9 @@ const (
 
 	// ProfitSharingOrdersDelete 删除分账接收方
 	ProfitSharingOrdersDelete = "profitsharing/receivers/delete"
+
+	// ProfitSharingMerchantConfigs 查询最大分账比例
+	ProfitSharingMerchantConfigs = "profitsharing/merchant-configs"
 )
 
 type ErrorResp struct {
