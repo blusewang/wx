@@ -46,13 +46,13 @@ func (ma MpAccount) ReadMessage(req *http.Request) (q mp_api.MessageQuery, msg m
 }
 
 // UrlSign 微信网页的网址签名
-func (ma MpAccount) UrlSign(u string) (d map[string]interface{}) {
-	data := make(map[string]interface{})
+func (ma MpAccount) UrlSign(u string) (d H) {
+	data := make(H)
 	data["noncestr"] = NewRandStr(32)
 	data["jsapi_ticket"] = ma.JsSdkTicket
 	data["timestamp"] = time.Now().Unix()
 	data["url"] = u
-	d = make(map[string]interface{})
+	d = make(H)
 	d["appId"] = ma.AppId
 	d["timestamp"] = data["timestamp"]
 	d["nonceStr"] = data["noncestr"]

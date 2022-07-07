@@ -12,7 +12,7 @@ type OcrBaseQuery struct {
 
 type OcrBandCardResp struct {
 	MpBaseResp
-	Id string `json:"id"`
+	Number string `json:"number"`
 }
 
 type OcrBusinessLicenseResp struct {

@@ -36,6 +36,7 @@ const (
 type PartnerApplymentReq struct {
 	BusinessCode string `json:"business_code"`
 	ContactInfo  struct {
+		ContactType     string `json:"contact_type"`
 		ContactName     string `json:"contact_name"`
 		ContactIdNumber string `json:"contact_id_number,omitempty"`
 		OpenId          string `json:"open_id,omitempty"`
@@ -52,7 +53,6 @@ type PartnerApplymentReq struct {
 		} `json:"business_license_info,omitempty"`
 		IdentityInfo struct {
 			IdDocType  PartnerApplymentIDType `json:"id_doc_type"`
-			Owner      bool                   `json:"owner"`
 			IdCardInfo struct {
 				IdCardCopy      string `json:"id_card_copy"`
 				IdCardNational  string `json:"id_card_national"`
@@ -61,6 +61,7 @@ type PartnerApplymentReq struct {
 				CardPeriodBegin string `json:"card_period_begin"`
 				CardPeriodEnd   string `json:"card_period_end"`
 			} `json:"id_card_info"`
+			Owner *bool `json:"owner,omitempty"`
 		} `json:"identity_info"`
 	} `json:"subject_info"`
 	BusinessInfo struct {
@@ -79,9 +80,12 @@ type PartnerApplymentReq struct {
 		} `json:"sales_info"`
 	} `json:"business_info"`
 	SettlementInfo struct {
-		SettlementId      string   `json:"settlement_id"`
-		QualificationType string   `json:"qualification_type"`
-		Qualifications    []string `json:"qualifications,omitempty"`
+		SettlementId        string   `json:"settlement_id"`
+		QualificationType   string   `json:"qualification_type"`
+		Qualifications      []string `json:"qualifications,omitempty"`
+		ActivitiesId        string   `json:"activities_id,omitempty"`
+		ActivitiesRate      string   `json:"activities_rate,omitempty"`
+		ActivitiesAdditions []string `json:"activities_additions,omitempty"`
 	} `json:"settlement_info"`
 	BankAccountInfo struct {
 		BankAccountType PartnerApplymentBankAccountType `json:"bank_account_type"`
