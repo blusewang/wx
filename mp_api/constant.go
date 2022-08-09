@@ -125,7 +125,7 @@ const (
 	OcrBusinessLicense = "cv/ocr/bizlicense"
 	// OcrDrivingLicense 营业执照识别
 	OcrDrivingLicense = "cv/ocr/drivinglicense"
-	// OcrIdCard 营业执照识别
+	// OcrIdCard 身份证识别
 	OcrIdCard = "cv/ocr/idcard"
 	// OcrText 普通文字识别
 	OcrText = "cv/ocr/comm"

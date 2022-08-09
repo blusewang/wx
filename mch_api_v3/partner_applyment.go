@@ -58,6 +58,7 @@ type PartnerApplymentReq struct {
 				IdCardNational  string `json:"id_card_national"`
 				IdCardName      string `json:"id_card_name"`
 				IdCardNumber    string `json:"id_card_number"`
+				IdCardAddress   string `json:"id_card_address"`
 				CardPeriodBegin string `json:"card_period_begin"`
 				CardPeriodEnd   string `json:"card_period_end"`
 			} `json:"id_card_info"`
