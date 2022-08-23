@@ -79,6 +79,7 @@ func (mr *mchReq) Do() (err error) {
 		cli = client()
 	}
 	resp, err := cli.Post(api, "application/xml", buf)
+	defer resp.Body.Close()
 	if err != nil {
 		return
 	}

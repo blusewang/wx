@@ -73,6 +73,7 @@ func (mr *mchReqV3) Do(method string) (err error) {
 		return
 	}
 	resp, err := cli.Do(req)
+	defer resp.Body.Close()
 	if err != nil {
 		return
 	}
@@ -150,6 +151,7 @@ func (mr *mchReqV3) Upload(fileName string, raw []byte) (err error) {
 	req.Header.Set("Content-Type", "multipart/form-data")
 	// 网络操作
 	resp, err := client().Do(req)
+	defer resp.Body.Close()
 	if err != nil {
 		return
 	}

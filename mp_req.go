@@ -83,6 +83,7 @@ func (mp *mpReq) Do() (err error) {
 		}
 		resp, err = client().Post(apiUrl, "application/json", buf)
 	}
+	defer resp.Body.Close()
 	if err != nil {
 		return
 	}
@@ -146,6 +147,7 @@ func (mp *mpReq) Upload(reader io.Reader, fileExtension string) (err error) {
 		return
 	}
 	resp, err := client().Post(apiUrl, w.FormDataContentType(), body)
+	defer resp.Body.Close()
 	if err != nil {
 		return
 	}
