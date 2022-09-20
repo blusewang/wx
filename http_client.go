@@ -33,8 +33,13 @@ func (m *mt) RoundTrip(req *http.Request) (res *http.Response, err error) {
 	return
 }
 
+var c *http.Client
+
 func client() *http.Client {
-	return &http.Client{Transport: &mt{http.Transport{}}}
+	if c == nil {
+		c = &http.Client{Transport: &mt{}}
+	}
+	return c
 }
 
 func RegisterHook(hook func(req *http.Request, reqBody []byte, res *http.Response, startAt time.Time, stopAt time.Time, err error)) {

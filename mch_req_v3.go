@@ -84,7 +84,7 @@ func (mr *mchReqV3) Do(method string) (err error) {
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusAccepted && resp.StatusCode != http.StatusNoContent {
 		var rs mch_api_v3.ErrorResp
 		_ = json.Unmarshal(raw, &rs)
-		return errors.New(fmt.Sprintf("%v | Request-ID:%v", rs.Message, resp.Header.Get("Request-ID")))
+		return errors.New(rs.Message)
 	}
 	if mr.api != mch_api_v3.OtherCertificates {
 		if err = mr.account.VerifyV3(resp.Header, raw); err != nil {

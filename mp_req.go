@@ -71,9 +71,9 @@ func (mp *mpReq) Do() (err error) {
 		mp.account.ServerHost = mp_api.ServerHostUniversal
 	}
 	var apiUrl = fmt.Sprintf("https://%v/%v?%v", mp.account.ServerHost, mp.path, v.Encode())
-	var resp *http.Response
+	var req *http.Request
 	if mp.sendData == nil {
-		resp, err = client().Get(apiUrl)
+		req, err = http.NewRequest(http.MethodGet, apiUrl, nil)
 	} else {
 		var buf = new(bytes.Buffer)
 		var coder = json.NewEncoder(buf)
@@ -81,9 +81,16 @@ func (mp *mpReq) Do() (err error) {
 		if err = coder.Encode(mp.sendData); err != nil {
 			return
 		}
-		resp, err = client().Post(apiUrl, "application/json", buf)
+		req, err = http.NewRequest(http.MethodPost, apiUrl, buf)
+		req.Header.Set("Content-Type", "application/json")
 	}
-	defer resp.Body.Close()
+	if err != nil {
+		return
+	}
+	resp, err := client().Do(req)
+	if resp != nil {
+		defer resp.Body.Close()
+	}
 	if err != nil {
 		return
 	}
