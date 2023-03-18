@@ -52,6 +52,45 @@ func (mp *mpReq) Bind(d interface{}) *mpReq {
 	return mp
 }
 
+// Download 下载
+func (mp *mpReq) Download() (resp *http.Response, err error) {
+	if mp.err != nil {
+		err = mp.err
+		return
+	}
+
+	var v url.Values
+	v, err = query.Values(mp.param)
+	if err != nil {
+		return
+	}
+
+	if mp.account.AccessToken != "" {
+		v.Set("access_token", mp.account.AccessToken)
+	}
+	if mp.account.ServerHost == "" {
+		mp.account.ServerHost = mp_api.ServerHostUniversal
+	}
+	var apiUrl = fmt.Sprintf("https://%v/%v?%v", mp.account.ServerHost, mp.path, v.Encode())
+	var req *http.Request
+	if mp.sendData == nil {
+		req, err = http.NewRequest(http.MethodGet, apiUrl, nil)
+	} else {
+		var buf = new(bytes.Buffer)
+		var coder = json.NewEncoder(buf)
+		coder.SetEscapeHTML(false)
+		if err = coder.Encode(mp.sendData); err != nil {
+			return
+		}
+		req, err = http.NewRequest(http.MethodPost, apiUrl, buf)
+		req.Header.Set("Content-Type", "application/json")
+	}
+	if err != nil {
+		return
+	}
+	return client().Do(req)
+}
+
 // Do 执行
 func (mp *mpReq) Do() (err error) {
 	if mp.err != nil {

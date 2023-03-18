@@ -63,6 +63,7 @@ type NotifyResource struct {
 	SpAppid       string    `json:"sp_appid,omitempty"`
 	SpMchid       string    `json:"sp_mchid,omitempty"`
 	SubAppid      string    `json:"sub_appid,omitempty"`
+	SubMchid      string    `json:"sub_mchid,omitempty"`
 	OutTradeNo    string    `json:"out_trade_no"`
 	TransactionId string    `json:"transaction_id"`
 	TradeType     string    `json:"trade_type"`

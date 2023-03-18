@@ -23,40 +23,29 @@ type ProfitSharingOrdersReq struct {
 	Receivers       []ProfitSharingOrdersReqReceiver `json:"receivers"`
 }
 
+type ProfitSharingOrdersRespReceiver struct {
+	ProfitSharingOrdersReqReceiver
+	Result     string `json:"result"`
+	FailReason string `json:"fail_reason"`
+	DetailId   string `json:"detail_id"`
+	CreateTime string `json:"create_time"`
+	FinishTime string `json:"finish_time"`
+}
+
 type ProfitSharingOrdersResp struct {
-	TransactionId string `json:"transaction_id"`
-	OutOrderNo    string `json:"out_order_no"`
-	OrderId       string `json:"order_id"`
-	State         string `json:"state"`
-	Receivers     *[]struct {
-		Type        string `json:"type"`
-		Account     string `json:"account"`
-		Amount      int64  `json:"amount"`
-		Description string `json:"description"`
-		Result      string `json:"result,omitempty"`
-		FailReason  string `json:"fail_reason"`
-		CreateTime  string `json:"create_time"`
-		FinishTime  string `json:"finish_time"`
-		DetailId    string `json:"detail_id"`
-	} `json:"receivers,omitempty"`
+	TransactionId string                             `json:"transaction_id"`
+	OutOrderNo    string                             `json:"out_order_no"`
+	OrderId       string                             `json:"order_id"`
+	State         string                             `json:"state"`
+	Receivers     *[]ProfitSharingOrdersRespReceiver `json:"receivers,omitempty"`
 }
 
 type ProfitSharingOrdersQueryResp struct {
-	TransactionId string `json:"transaction_id"`
-	OutOrderNo    string `json:"out_order_no"`
-	OrderId       string `json:"order_id"`
-	State         string `json:"state"`
-	Receivers     *[]struct {
-		Type        string `json:"type"`
-		Account     string `json:"account"`
-		Amount      int64  `json:"amount"`
-		Description string `json:"description"`
-		Result      string `json:"result,omitempty"`
-		FailReason  string `json:"fail_reason"`
-		CreateTime  string `json:"create_time"`
-		FinishTime  string `json:"finish_time"`
-		DetailId    string `json:"detail_id"`
-	} `json:"receivers,omitempty"`
+	TransactionId string                             `json:"transaction_id"`
+	OutOrderNo    string                             `json:"out_order_no"`
+	OrderId       string                             `json:"order_id"`
+	State         string                             `json:"state"`
+	Receivers     *[]ProfitSharingOrdersRespReceiver `json:"receivers,omitempty"`
 }
 
 type ProfitSharingOrdersUnfreezeReq struct {

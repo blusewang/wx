@@ -162,7 +162,7 @@ func (ma MchAccount) RsaEncrypt(plain string) (out string) {
 	return
 }
 
-// RsaEncryptV3 机要信息加密V2
+// RsaEncryptV3 机要信息加密V3
 func (ma MchAccount) RsaEncryptV3(plain string) (out string) {
 	var pk = wechatPayCerts.GetCert()
 	raw, err := rsa.EncryptOAEP(sha1.New(), rand2.Reader, pk.PublicKey.(*rsa.PublicKey), []byte(plain), nil)

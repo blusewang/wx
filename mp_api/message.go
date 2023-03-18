@@ -214,7 +214,7 @@ type MessageTemplateSendData struct {
 	ToUser      string                                 `json:"touser"`
 	TemplateId  string                                 `json:"template_id"`
 	Url         string                                 `json:"url"`
-	MiniProgram MessageTemplateMiniProgram             `json:"mini_program"`
+	MiniProgram MessageTemplateMiniProgram             `json:"miniprogram"`
 	Data        map[string]MessageTemplateSendDataItem `json:"data"`
 }
 

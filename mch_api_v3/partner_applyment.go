@@ -46,10 +46,12 @@ type PartnerApplymentReq struct {
 	SubjectInfo struct {
 		SubjectType         PartnerApplymentSubjectType `json:"subject_type"`
 		BusinessLicenseInfo struct {
-			LicenseCopy   string `json:"license_copy"`
-			LicenseNumber string `json:"license_number"`
-			MerchantName  string `json:"merchant_name"`
-			LegalPerson   string `json:"legal_person"`
+			LicenseCopy   string  `json:"license_copy"`
+			LicenseNumber string  `json:"license_number"`
+			MerchantName  string  `json:"merchant_name"`
+			LegalPerson   string  `json:"legal_person"`
+			PeriodBegin   *string `json:"period_begin,omitempty"`
+			PeriodEnd     *string `json:"period_end,omitempty"`
 		} `json:"business_license_info,omitempty"`
 		IdentityInfo struct {
 			IdDocType  PartnerApplymentIDType `json:"id_doc_type"`

@@ -114,8 +114,16 @@ const (
 	// GuideAddBuyer 为顾问分配客户
 	GuideAddBuyer = "cgi-bin/guide/addguidebuyerrelation"
 
-	// MiniProgramJsCode2Session 小程序
-	MiniProgramJsCode2Session = "sns/jscode2session" // 登录凭证校验
+	//  小程序
+
+	// SnsJsCode2Session 登录凭证校验
+	SnsJsCode2Session = "sns/jscode2session"
+	// WXACode 获取小程序码
+	WXACode = "wxa/getwxacode"
+	// WXACodeUnLimit 获取不限制的小程序码
+	WXACodeUnLimit = "wxa/getwxacodeunlimit"
+	// WXAQrCode 获取小程序二维码
+	WXAQrCode = "cgi-bin/wxaapp/createwxaqrcode"
 
 	// OCR
 
