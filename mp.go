@@ -14,13 +14,14 @@ import (
 // MpAccount 应用账号
 // ServerHost 默认为：mp_api.ServerHostUniversal
 type MpAccount struct {
-	AppId          string            `json:"app_id"`
-	AccessToken    string            `json:"access_token"`
-	AppSecret      string            `json:"app_secret"`
-	PrivateToken   string            `json:"private_token"`
-	EncodingAESKey string            `json:"encoding_aes_key"`
-	JsSdkTicket    string            `json:"js_sdk_ticket"`
-	ServerHost     mp_api.ServerHost `json:"server_host"`
+	AppId                 string            `json:"app_id"`
+	AccessToken           string            `json:"access_token"`
+	AppSecret             string            `json:"app_secret"`
+	PrivateToken          string            `json:"private_token"`
+	EncodingAESKey        string            `json:"encoding_aes_key"`
+	JsSdkTicket           string            `json:"js_sdk_ticket"`
+	ComponentVerifyTicket *string           `json:"component_verify_ticket"`
+	ServerHost            mp_api.ServerHost `json:"server_host"`
 }
 
 // ReadMessage 读取通知消息

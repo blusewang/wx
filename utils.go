@@ -6,10 +6,11 @@ import (
 	"reflect"
 	"sort"
 	"strings"
-	"time"
 )
 
 type H map[string]interface{}
+
+const letterBytes = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 // SafeString 安全地限制长度，并将微信不支持的字符替换成'x'，能满足商户平台的字符要求
 func SafeString(str string, length int) string {
@@ -70,18 +71,12 @@ func LimitString(str string, length int) string {
 }
 
 // NewRandStr 生成符合微信要求随机字符
-func NewRandStr(length int) string {
-	codes := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-	codeLen := len(codes)
-	data := make([]byte, length)
-	rand.Seed(time.Now().UnixNano())
-
-	for i := 0; i < length; i++ {
-		idx := rand.Intn(codeLen)
-		data[i] = codes[idx]
+func NewRandStr(n int) string {
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = letterBytes[rand.Int63()%int64(len(letterBytes))]
 	}
-
-	return string(data)
+	return string(b)
 }
 
 func obj2map(obj interface{}) (p map[string]interface{}) {

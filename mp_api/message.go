@@ -68,7 +68,22 @@ type MessageData struct {
 	Status       string  `xml:"Status" json:"status,omitempty"`
 	MsgID        int64   `xml:"MsgID" json:"msgID,omitempty"`
 	SentCount    int64   `xml:"SentCount" json:"sent_count,omitempty"`
-	AppId        string  `xml:"-" json:"app_id,omitempty"`
+	AppId        string  `xml:"AppId,omitempty" json:"app_id,omitempty"`
+	InfoType     string  `xml:"InfoType,omitempty" json:"info_type,omitempty"`
+	Msg          string  `xml:"msg,omitempty" json:"msg,omitempty"`
+	Info         MsgInfo `xml:"info,omitempty" json:"info,omitempty"`
+}
+
+type MsgInfo struct {
+	ComponentVerifyTicket string `xml:"ComponentVerifyTicket,omitempty" json:"component_verify_ticket,omitempty"`
+	Status2               int64  `xml:"status,omitempty" json:"status_2,omitempty"`
+	AuthCode              string `xml:"auth_code,omitempty" json:"auth_code,omitempty,omitempty"`
+	Name                  string `xml:"name,omitempty" json:"name,omitempty"`
+	Code                  string `xml:"code,omitempty" json:"code,omitempty"`
+	CodeType              int64  `xml:"code_type,omitempty" json:"codeType,omitempty"`
+	LegalPersonaWechat    string `xml:"legal_persona_wechat,omitempty" json:"legalPersonaWechat,omitempty"`
+	LegalPersonaName      string `xml:"legal_persona_name,omitempty" json:"legalPersonaName,omitempty"`
+	ComponentPhone        string `xml:"component_phone,omitempty" json:"componentPhone,omitempty"`
 }
 
 // ShouldDecode 公众号消息解密
