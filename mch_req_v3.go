@@ -8,11 +8,13 @@ package wx
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/blusewang/wx/mch_api_v3"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -48,9 +50,9 @@ func (mr *mchReqV3) Bind(data interface{}) *mchReqV3 {
 }
 
 // Do 执行
-func (mr *mchReqV3) Do(method string) (err error) {
+func (mr *mchReqV3) Do(ctx context.Context, method string) (err error) {
 	if wechatPayCerts.IsEmpty() {
-		if err = mr.account.DownloadV3Cert(); err != nil {
+		if err = mr.account.DownloadV3Cert(ctx); err != nil {
 			return
 		}
 	}
@@ -64,7 +66,6 @@ func (mr *mchReqV3) Do(method string) (err error) {
 	if strings.HasPrefix(string(mr.api), "http") {
 		api = string(mr.api)
 	}
-	var cli = client()
 	req, err := http.NewRequest(method, api, bytes.NewReader(buf.Bytes()))
 	if err != nil {
 		return
@@ -72,12 +73,12 @@ func (mr *mchReqV3) Do(method string) (err error) {
 	if err = mr.sign(req, buf.Bytes()); err != nil {
 		return
 	}
-	resp, err := cli.Do(req)
+	resp, err := client(ctx).Do(req)
 	defer resp.Body.Close()
 	if err != nil {
 		return
 	}
-	raw, err := ioutil.ReadAll(resp.Body)
+	raw, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return
 	}
@@ -87,7 +88,7 @@ func (mr *mchReqV3) Do(method string) (err error) {
 		return errors.New(rs.Message)
 	}
 	if mr.api != mch_api_v3.OtherCertificates {
-		if err = mr.account.VerifyV3(resp.Header, raw); err != nil {
+		if err = mr.account.VerifyV3(ctx, resp.Header, raw); err != nil {
 			return
 		}
 	}
@@ -103,10 +104,10 @@ func (mr *mchReqV3) Do(method string) (err error) {
 }
 
 // Upload 上传图片视频
-func (mr *mchReqV3) Upload(fileName string, raw []byte) (err error) {
+func (mr *mchReqV3) Upload(ctx context.Context, fileName string, raw []byte) (err error) {
 	// 准备证书
 	if wechatPayCerts.IsEmpty() {
-		if err = mr.account.DownloadV3Cert(); err != nil {
+		if err = mr.account.DownloadV3Cert(ctx); err != nil {
 			return
 		}
 	}
@@ -150,7 +151,7 @@ func (mr *mchReqV3) Upload(fileName string, raw []byte) (err error) {
 	}
 	req.Header.Set("Content-Type", "multipart/form-data")
 	// 网络操作
-	resp, err := client().Do(req)
+	resp, err := client(ctx).Do(req)
 	defer resp.Body.Close()
 	if err != nil {
 		return
@@ -167,7 +168,7 @@ func (mr *mchReqV3) Upload(fileName string, raw []byte) (err error) {
 		log.Println(api, rs, resp.Header.Get("Request-ID"))
 		return errors.New(fmt.Sprintf("%v | Request-ID:%v", rs.Message, resp.Header.Get("Request-ID")))
 	}
-	if err = mr.account.VerifyV3(resp.Header, raw); err != nil {
+	if err = mr.account.VerifyV3(ctx, resp.Header, raw); err != nil {
 		return
 	}
 	if resp.StatusCode == http.StatusOK {

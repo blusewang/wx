@@ -30,7 +30,7 @@ type JsApiTransactionReq struct {
 	NotifyUrl   string                 `json:"notify_url"`
 	GoodsTag    string                 `json:"goods_tag,omitempty"`
 	Amount      TransactionAmount      `json:"amount"`
-	Payer       TransactionPayer       `json:"payer"`
+	Payer       *TransactionPayer      `json:"payer,omitempty"`
 	SettleInfo  *TransactionSettleInfo `json:"settle_info,omitempty"`
 }
 
@@ -41,6 +41,12 @@ type JsApiTransactionResp struct {
 type AppTransactionReq JsApiTransactionReq
 
 type AppTransactionResp JsApiTransactionResp
+
+type NativeTransactionReq JsApiTransactionReq
+
+type NativeTransactionResp struct {
+	CodeUrl string `json:"code_url"`
+}
 
 type NotifyPayResult struct {
 	Id           string `json:"id"`

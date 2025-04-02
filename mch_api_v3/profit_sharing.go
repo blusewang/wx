@@ -33,6 +33,7 @@ type ProfitSharingOrdersRespReceiver struct {
 }
 
 type ProfitSharingOrdersResp struct {
+	SubMchId      string                             `json:"sub_mch_id,omitempty"`
 	TransactionId string                             `json:"transaction_id"`
 	OutOrderNo    string                             `json:"out_order_no"`
 	OrderId       string                             `json:"order_id"`
@@ -44,6 +45,7 @@ type ProfitSharingOrdersQueryResp struct {
 	TransactionId string                             `json:"transaction_id"`
 	OutOrderNo    string                             `json:"out_order_no"`
 	OrderId       string                             `json:"order_id"`
+	SubMchId      string                             `json:"sub_mchid"`
 	State         string                             `json:"state"`
 	Receivers     *[]ProfitSharingOrdersRespReceiver `json:"receivers,omitempty"`
 }

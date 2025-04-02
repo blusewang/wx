@@ -29,6 +29,9 @@ const (
 	// JsApiTransaction JSAPI下单
 	JsApiTransaction = "pay/transactions/jsapi"
 
+	// NativeTransaction App下单
+	NativeTransaction = "pay/transactions/native"
+
 	// AppTransaction App下单
 	AppTransaction = "pay/transactions/app"
 
@@ -46,6 +49,9 @@ const (
 
 	// ProfitSharingMerchantConfigs 查询最大分账比例
 	ProfitSharingMerchantConfigs = "profitsharing/merchant-configs"
+
+	// TransferBatches 发起商家转账
+	TransferBatches = "transfer/batches"
 )
 
 type ErrorResp struct {

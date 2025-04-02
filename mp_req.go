@@ -8,6 +8,7 @@ package wx
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -53,7 +54,7 @@ func (mp *mpReq) Bind(d interface{}) *mpReq {
 }
 
 // Download 下载
-func (mp *mpReq) Download() (resp *http.Response, err error) {
+func (mp *mpReq) Download(ctx context.Context) (resp *http.Response, err error) {
 	if mp.err != nil {
 		err = mp.err
 		return
@@ -88,11 +89,11 @@ func (mp *mpReq) Download() (resp *http.Response, err error) {
 	if err != nil {
 		return
 	}
-	return client().Do(req)
+	return client(ctx).Do(req)
 }
 
 // Do 执行
-func (mp *mpReq) Do() (err error) {
+func (mp *mpReq) Do(ctx context.Context) (err error) {
 	if mp.err != nil {
 		return mp.err
 	}
@@ -126,7 +127,7 @@ func (mp *mpReq) Do() (err error) {
 	if err != nil {
 		return
 	}
-	resp, err := client().Do(req)
+	resp, err := client(ctx).Do(req)
 	if resp != nil {
 		defer resp.Body.Close()
 	}
@@ -161,7 +162,7 @@ func (mp *mpReq) Do() (err error) {
 // Upload 上传文档。
 // reader 一个打开的文件reader。
 // fileExtension 该文件的后缀名。
-func (mp *mpReq) Upload(reader io.Reader, fileExtension string) (err error) {
+func (mp *mpReq) Upload(ctx context.Context, reader io.Reader, fileExtension string) (err error) {
 	if mp.err != nil {
 		return mp.err
 	}
@@ -192,7 +193,7 @@ func (mp *mpReq) Upload(reader io.Reader, fileExtension string) (err error) {
 	if err = w.Close(); err != nil {
 		return
 	}
-	resp, err := client().Post(apiUrl, w.FormDataContentType(), body)
+	resp, err := client(ctx).Post(apiUrl, w.FormDataContentType(), body)
 	defer resp.Body.Close()
 	if err != nil {
 		return

@@ -8,6 +8,7 @@ package wx
 
 import (
 	"bytes"
+	"context"
 	"encoding/xml"
 	"errors"
 	"fmt"
@@ -56,7 +57,7 @@ func (mr *mchReq) Bind(data interface{}) *mchReq {
 }
 
 // Do 执行
-func (mr *mchReq) Do() (err error) {
+func (mr *mchReq) Do(ctx context.Context) (err error) {
 	if err = mr.sign(); err != nil {
 		return
 	}
@@ -71,12 +72,12 @@ func (mr *mchReq) Do() (err error) {
 	}
 	var cli *http.Client
 	if mr.isPrivateClient {
-		cli, err = mr.account.newPrivateClient()
+		cli, err = mr.account.newPrivateClient(ctx)
 		if err != nil {
 			return err
 		}
 	} else {
-		cli = client()
+		cli = client(ctx)
 	}
 	resp, err := cli.Post(api, "application/xml", buf)
 	defer resp.Body.Close()

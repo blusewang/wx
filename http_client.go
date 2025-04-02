@@ -8,40 +8,44 @@ package wx
 
 import (
 	"bytes"
-	"io/ioutil"
+	"context"
+	"io"
 	"net/http"
 	"time"
 )
 
-var _hook func(req *http.Request, reqBody []byte, res *http.Response, startAt time.Time, stopAt time.Time, err error)
+var _hook func(req *http.Request, ctx context.Context, reqBody []byte, res *http.Response, startAt time.Time, stopAt time.Time, err error)
 
 type mt struct {
-	t http.Transport
+	t   http.Transport
+	ctx context.Context
 }
 
 func (m *mt) RoundTrip(req *http.Request) (res *http.Response, err error) {
+	t := time.Now()
 	var reqBody []byte
 	if req.Body != nil {
-		reqBody, _ = ioutil.ReadAll(req.Body)
-		req.Body = ioutil.NopCloser(bytes.NewReader(reqBody))
+		reqBody, _ = io.ReadAll(req.Body)
+		req.Body = io.NopCloser(bytes.NewReader(reqBody))
 	}
-	t := time.Now()
 	res, err = m.t.RoundTrip(req)
 	if _hook != nil {
-		_hook(req, reqBody, res, t, time.Now(), err)
+		_hook(req, m.ctx, reqBody, res, t, time.Now(), err)
 	}
 	return
 }
 
 var c *http.Client
 
-func client() *http.Client {
+func client(ctx context.Context) *http.Client {
 	if c == nil {
-		c = &http.Client{Transport: &mt{}}
+		c = &http.Client{Transport: &mt{ctx: ctx}}
+	} else {
+		c.Transport = &mt{ctx: ctx}
 	}
 	return c
 }
 
-func RegisterHook(hook func(req *http.Request, reqBody []byte, res *http.Response, startAt time.Time, stopAt time.Time, err error)) {
+func RegisterHook(hook func(req *http.Request, ctx context.Context, reqBody []byte, res *http.Response, startAt time.Time, stopAt time.Time, err error)) {
 	_hook = hook
 }

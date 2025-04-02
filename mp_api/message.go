@@ -37,41 +37,79 @@ func (mq MessageQuery) Validate(PrivateToken string) (err error) {
 	return
 }
 
+type MessageReplyArticle struct {
+	Title       string `xml:"Title,omitempty"`
+	Description string `xml:"Description,omitempty"`
+	PicUrl      string `xml:"PicUrl,omitempty"`
+	Url         string `xml:"Url,omitempty"`
+}
+
+type MessageReplyArticleItem struct {
+	Item MessageReplyArticle `xml:"item"`
+}
+
+// MessageReply 公众号消息
+type MessageReply struct {
+	XMLName      xml.Name                  `xml:"xml"`
+	ToUserName   string                    `xml:"ToUserName" json:"to_user_name,omitempty"`
+	FromUserName string                    `xml:"FromUserName" json:"from_user_name,omitempty"`
+	CreateTime   int64                     `xml:"CreateTime" json:"create_time,omitempty"`
+	MsgType      string                    `xml:"MsgType" json:"msg_type,omitempty"`
+	ArticleCount int                       `xml:"ArticleCount" json:"article_count,omitempty"`
+	Articles     []MessageReplyArticleItem `xml:"Articles" json:"articles,omitempty"`
+	Content      string                    `xml:"Content" json:"content,omitempty"`
+}
+
 // MessageData 公众号消息
 type MessageData struct {
-	ToUserName   string  `xml:"ToUserName" json:"to_user_name,omitempty"`
-	Encrypt      string  `xml:"Encrypt" json:"encrypt,omitempty"`
-	FromUserName string  `xml:"FromUserName" json:"from_user_name,omitempty"`
-	CreateTime   int64   `xml:"CreateTime" json:"create_time,omitempty"`
-	MsgType      string  `xml:"MsgType" json:"msg_type,omitempty"`
-	Content      string  `xml:"Content" json:"content,omitempty"`
-	MsgId        int64   `xml:"MsgId" json:"msg_id,omitempty"`
-	PicUrl       string  `xml:"PicUrl" json:"pic_url,omitempty"`
-	MediaId      string  `xml:"MediaId" json:"media_id,omitempty"`
-	Format       string  `xml:"Format" json:"format,omitempty"`
-	Recognition  string  `xml:"Recognition" json:"recognition,omitempty"`
-	ThumbMediaId string  `xml:"ThumbMediaId" json:"thumb_media_id,omitempty"`
-	LocationX    float64 `xml:"Location_X" json:"location_x,omitempty"`
-	LocationY    float64 `xml:"Location_Y" json:"location_y,omitempty"`
-	Scale        int64   `xml:"Scale" json:"scale,omitempty"`
-	Label        string  `xml:"Label" json:"label,omitempty"`
-	Title        string  `xml:"Title" json:"title,omitempty"`
-	Description  string  `xml:"Description" json:"description,omitempty"`
-	Url          string  `xml:"Url" json:"url,omitempty"`
-	Event        string  `xml:"Event" json:"event,omitempty"`
-	EventKey     string  `xml:"EventKey" json:"event_key,omitempty"`
-	Ticket       string  `xml:"Ticket" json:"ticket,omitempty"`
-	Latitude     float64 `xml:"Latitude" json:"latitude,omitempty"`
-	Longitude    float64 `xml:"Longitude" json:"longitude,omitempty"`
-	Precision    float64 `xml:"Precision" json:"precision,omitempty"`
-	SessionFrom  string  `xml:"SessionFrom" json:"session_from,omitempty"`
-	Status       string  `xml:"Status" json:"status,omitempty"`
-	MsgID        int64   `xml:"MsgID" json:"msgID,omitempty"`
-	SentCount    int64   `xml:"SentCount" json:"sent_count,omitempty"`
-	AppId        string  `xml:"AppId,omitempty" json:"app_id,omitempty"`
-	InfoType     string  `xml:"InfoType,omitempty" json:"info_type,omitempty"`
-	Msg          string  `xml:"msg,omitempty" json:"msg,omitempty"`
-	Info         MsgInfo `xml:"info,omitempty" json:"info,omitempty"`
+	XMLName          xml.Name         `xml:"xml"`
+	ToUserName       string           `xml:"ToUserName" json:"to_user_name,omitempty"`
+	Encrypt          string           `xml:"Encrypt" json:"encrypt,omitempty"`
+	FromUserName     string           `xml:"FromUserName" json:"from_user_name,omitempty"`
+	CreateTime       int64            `xml:"CreateTime" json:"create_time,omitempty"`
+	MsgType          string           `xml:"MsgType" json:"msg_type,omitempty"`
+	Content          string           `xml:"Content" json:"content,omitempty"`
+	MsgId            int64            `xml:"MsgId" json:"msg_id,omitempty"`
+	PicUrl           string           `xml:"PicUrl" json:"pic_url,omitempty"`
+	MediaId          string           `xml:"MediaId" json:"media_id,omitempty"`
+	Format           string           `xml:"Format" json:"format,omitempty"`
+	Recognition      string           `xml:"Recognition" json:"recognition,omitempty"`
+	ThumbMediaId     string           `xml:"ThumbMediaId" json:"thumb_media_id,omitempty"`
+	LocationX        float64          `xml:"Location_X" json:"location_x,omitempty"`
+	LocationY        float64          `xml:"Location_Y" json:"location_y,omitempty"`
+	Scale            int64            `xml:"Scale" json:"scale,omitempty"`
+	Label            string           `xml:"Label" json:"label,omitempty"`
+	Title            string           `xml:"Title" json:"title,omitempty"`
+	Description      string           `xml:"Description" json:"description,omitempty"`
+	Url              string           `xml:"Url" json:"url,omitempty"`
+	Event            string           `xml:"Event" json:"event,omitempty"`
+	EventKey         string           `xml:"EventKey" json:"event_key,omitempty"`
+	Ticket           string           `xml:"Ticket" json:"ticket,omitempty"`
+	Latitude         float64          `xml:"Latitude" json:"latitude,omitempty"`
+	Longitude        float64          `xml:"Longitude" json:"longitude,omitempty"`
+	Precision        float64          `xml:"Precision" json:"precision,omitempty"`
+	SessionFrom      string           `xml:"SessionFrom" json:"session_from,omitempty"`
+	Status           string           `xml:"Status" json:"status,omitempty"`
+	MsgID            int64            `xml:"MsgID" json:"msgID,omitempty"`
+	SentCount        int64            `xml:"SentCount" json:"sent_count,omitempty"`
+	AppId            string           `xml:"AppId,omitempty" json:"app_id,omitempty"`
+	InfoType         string           `xml:"InfoType,omitempty" json:"info_type,omitempty"`
+	Msg              string           `xml:"msg,omitempty" json:"msg,omitempty"`
+	Info             MsgInfo          `xml:"info,omitempty" json:"info,omitempty"`
+	PublishEventInfo PublishEventInfo `xml:"PublishEventInfo,omitempty" json:"publishEventInfo,omitempty"`
+}
+
+type PublishEventInfo struct {
+	PublishId     int64  `xml:"publish_id" json:"publish_id"`
+	PublishStatus int64  `xml:"publish_status" json:"publish_status"`
+	ArticleId     string `xml:"article_id" json:"article_id"`
+	ArticleDetail struct {
+		Count int64 `xml:"count" json:"count"`
+		Item  []struct {
+			Idx        int64  `xml:"idx" json:"idx"`
+			ArticleUrl string `xml:"article_url" json:"article_url"`
+		} `xml:"item" json:"item"`
+	} `xml:"article_detail" json:"article_detail"`
 }
 
 type MsgInfo struct {
