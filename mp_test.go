@@ -2,11 +2,12 @@ package wx
 
 import (
 	"encoding/json"
-	"github.com/blusewang/wx/mp_api"
-	"github.com/youkale/go-querystruct/params"
 	"log"
 	"net/url"
 	"testing"
+
+	"github.com/blusewang/wx/mp_api"
+	"github.com/youkale/go-querystruct/params"
 )
 
 func TestLimitString(t *testing.T) {

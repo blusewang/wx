@@ -8,13 +8,14 @@ package wx
 
 import (
 	"bytes"
-	"github.com/blusewang/wx/mch_api"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/blusewang/wx/mch_api"
 )
 
 func TestMchAccount_NewMchReq(t *testing.T) {

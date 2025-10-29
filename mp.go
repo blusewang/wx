@@ -4,11 +4,12 @@ import (
 	"crypto/sha1"
 	"encoding/xml"
 	"fmt"
-	"github.com/blusewang/wx/mp_api"
-	"github.com/youkale/go-querystruct/params"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/blusewang/wx/mp_api"
+	"github.com/youkale/go-querystruct/params"
 )
 
 // MpAccount 应用账号
@@ -16,6 +17,7 @@ import (
 type MpAccount struct {
 	AppId                 string            `json:"app_id"`
 	AccessToken           string            `json:"access_token"`
+	ExpireAt              time.Time         `json:"expire_at"`
 	AppSecret             string            `json:"app_secret"`
 	PrivateToken          string            `json:"private_token"`
 	EncodingAESKey        string            `json:"encoding_aes_key"`

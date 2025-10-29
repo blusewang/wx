@@ -16,8 +16,9 @@ type OaWebAppsSnsAuth2AccessTokenRes struct {
 }
 
 type OaWebAppsSnsUserInfoQuery struct {
-	OpenId string `url:"openid"`
-	Lang   string `url:"lang"`
+	AccessToken string `url:"access_token"`
+	OpenId      string `url:"openid"`
+	Lang        string `url:"lang"`
 }
 
 type OaWebAppsSnsUserInfoRes struct {

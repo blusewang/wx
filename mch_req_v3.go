@@ -13,7 +13,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/blusewang/wx/mch_api_v3"
 	"io"
 	"io/ioutil"
 	"log"
@@ -21,6 +20,8 @@ import (
 	"path"
 	"strings"
 	"time"
+
+	"github.com/blusewang/wx/mch_api_v3"
 )
 
 var (
@@ -179,7 +180,7 @@ func (mr *mchReqV3) Upload(ctx context.Context, fileName string, raw []byte) (er
 }
 
 func (mr *mchReqV3) sign(request *http.Request, body []byte) (err error) {
-	request.Header.Set("User-Agent", "Gdb/1.0")
+	request.Header.Set("User-Agent", "Guandb/1.0")
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Accept", "application/json")
 	if !wechatPayCerts.IsEmpty() {

@@ -12,10 +12,11 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
-	"github.com/blusewang/wx/mch_api"
 	"net/http"
 	"reflect"
 	"strings"
+
+	"github.com/blusewang/wx/mch_api"
 )
 
 // 商户请求

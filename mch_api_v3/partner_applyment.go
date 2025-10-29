@@ -94,7 +94,7 @@ type PartnerApplymentReq struct {
 		BankAccountType PartnerApplymentBankAccountType `json:"bank_account_type"`
 		AccountName     string                          `json:"account_name"`
 		AccountBank     string                          `json:"account_bank"`
-		BankAddressCode string                          `json:"bank_address_code"`
+		BankAddressCode string                          `json:"bank_address_code,omitempty"`
 		BankBranchId    string                          `json:"bank_branch_id,omitempty"`
 		BankName        string                          `json:"bank_name,omitempty"`
 		AccountNumber   string                          `json:"account_number"`
@@ -121,6 +121,12 @@ const (
 	PartnerApplymentStateCanceled  = "APPLYMENT_STATE_CANCELED"
 )
 
+type AuditDetailItem struct {
+	Field        string `json:"field"`
+	FieldName    string `json:"field_name"`
+	RejectReason string `json:"reject_reason"`
+}
+
 type PartnerApplymentQueryResp struct {
 	BusinessCode      string                `json:"business_code"`
 	ApplymentId       int64                 `json:"applyment_id"`
@@ -128,9 +134,5 @@ type PartnerApplymentQueryResp struct {
 	SignUrl           *string               `json:"sign_url,omitempty"`
 	ApplymentState    PartnerApplymentState `json:"applyment_state"`
 	ApplymentStateMsg string                `json:"applyment_state_msg"`
-	AuditDetail       []struct {
-		Field        string `json:"field"`
-		FieldName    string `json:"field_name"`
-		RejectReason string `json:"reject_reason"`
-	} `json:"audit_detail,omitempty"`
+	AuditDetail       []AuditDetailItem     `json:"audit_detail,omitempty"`
 }

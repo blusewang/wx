@@ -9,12 +9,13 @@ package wx
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/blusewang/wx/mch_api"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"testing"
 	"time"
+
+	"github.com/blusewang/wx/mch_api"
 )
 
 func TestMt_RoundTrip(t *testing.T) {

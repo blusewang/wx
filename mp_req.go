@@ -12,13 +12,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/blusewang/wx/mp_api"
-	"github.com/google/go-querystring/query"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"net/url"
 	"reflect"
+
+	"github.com/blusewang/wx/mp_api"
+	"github.com/google/go-querystring/query"
 )
 
 // Api请求数据体
@@ -66,7 +67,7 @@ func (mp *mpReq) Download(ctx context.Context) (resp *http.Response, err error) 
 		return
 	}
 
-	if mp.account.AccessToken != "" {
+	if !v.Has("access_token") && mp.account.AccessToken != "" {
 		v.Set("access_token", mp.account.AccessToken)
 	}
 	if mp.account.ServerHost == "" {
@@ -104,7 +105,7 @@ func (mp *mpReq) Do(ctx context.Context) (err error) {
 		return err
 	}
 
-	if mp.account.AccessToken != "" {
+	if !v.Has("access_token") && mp.account.AccessToken != "" {
 		v.Set("access_token", mp.account.AccessToken)
 	}
 	if mp.account.ServerHost == "" {
@@ -128,11 +129,11 @@ func (mp *mpReq) Do(ctx context.Context) (err error) {
 		return
 	}
 	resp, err := client(ctx).Do(req)
-	if resp != nil {
-		defer resp.Body.Close()
-	}
 	if err != nil {
 		return
+	}
+	if resp != nil {
+		defer resp.Body.Close()
 	}
 	if mp.res == nil {
 		mp.res = &mp_api.MpBaseResp{}
