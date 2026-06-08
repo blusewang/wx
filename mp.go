@@ -1,6 +1,7 @@
 package wx
 
 import (
+	"context"
 	"crypto/sha1"
 	"encoding/xml"
 	"fmt"
@@ -15,33 +16,34 @@ import (
 // MpAccount 应用账号
 // ServerHost 默认为：mp_api.ServerHostUniversal
 type MpAccount struct {
-	AppId                 string            `json:"app_id"`
-	AccessToken           string            `json:"access_token"`
-	ExpireAt              time.Time         `json:"expire_at"`
-	AppSecret             string            `json:"app_secret"`
-	PrivateToken          string            `json:"private_token"`
-	EncodingAESKey        string            `json:"encoding_aes_key"`
-	JsSdkTicket           string            `json:"js_sdk_ticket"`
-	ComponentVerifyTicket *string           `json:"component_verify_ticket"`
-	ServerHost            mp_api.ServerHost `json:"server_host"`
+	AppId           string            `json:"app_id"`
+	AccessToken     string            `json:"access_token"`
+	ExpireAt        time.Time         `json:"expire_at"`
+	GarbageDuration time.Duration     `json:"garbage_duration"`
+	AppSecret       string            `json:"app_secret"`
+	PrivateToken    string            `json:"private_token"`
+	EncodingAESKey  string            `json:"encoding_aes_key"`
+	JsSdkTicket     string            `json:"js_sdk_ticket"`
+	ServerHost      mp_api.ServerHost `json:"server_host"`
+	TokenGuard      func(ctx context.Context) (err error)
 }
 
 // ReadMessage 读取通知消息
-func (ma MpAccount) ReadMessage(req *http.Request) (q mp_api.MessageQuery, msg mp_api.MessageData, err error) {
+func (it *MpAccount) ReadMessage(req *http.Request) (q mp_api.MessageQuery, msg mp_api.MessageData, err error) {
 	if err = params.Unmarshal(req.URL.Query(), &q); err != nil {
 		return
 	}
 	if q.EchoStr != "" {
 		return
 	}
-	if err = q.Validate(ma.PrivateToken); err != nil {
+	if err = q.Validate(it.PrivateToken); err != nil {
 		return
 	}
 	if err = xml.NewDecoder(req.Body).Decode(&msg); err != nil {
 		return
 	}
 	if msg.Encrypt != "" {
-		if err = msg.ShouldDecode(ma.EncodingAESKey); err != nil {
+		if err = msg.ShouldDecode(it.EncodingAESKey); err != nil {
 			return
 		}
 	}
@@ -49,14 +51,14 @@ func (ma MpAccount) ReadMessage(req *http.Request) (q mp_api.MessageQuery, msg m
 }
 
 // UrlSign 微信网页的网址签名
-func (ma MpAccount) UrlSign(u string) (d H) {
+func (it *MpAccount) UrlSign(u string) (d H) {
 	data := make(H)
 	data["noncestr"] = NewRandStr(32)
-	data["jsapi_ticket"] = ma.JsSdkTicket
+	data["jsapi_ticket"] = it.JsSdkTicket
 	data["timestamp"] = time.Now().Unix()
 	data["url"] = u
 	d = make(H)
-	d["appId"] = ma.AppId
+	d["appId"] = it.AppId
 	d["timestamp"] = data["timestamp"]
 	d["nonceStr"] = data["noncestr"]
 
@@ -67,6 +69,6 @@ func (ma MpAccount) UrlSign(u string) (d H) {
 }
 
 // NewMpReq 新建一个请求
-func (ma MpAccount) NewMpReq(path mp_api.MpApi) *mpReq {
-	return &mpReq{account: ma, path: path}
+func (it *MpAccount) NewMpReq(path mp_api.MpApi) MpRequester {
+	return new(mpReq{account: it, path: path})
 }

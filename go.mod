@@ -1,8 +1,8 @@
 module github.com/blusewang/wx
 
-go 1.13
+go 1.26
 
 require (
-	github.com/google/go-querystring v1.0.0
-	github.com/youkale/go-querystruct v0.0.0-20190423034802-cb0a446556d0
+	github.com/google/go-querystring v1.2.0
+	github.com/youkale/go-querystruct v1.0.0
 )

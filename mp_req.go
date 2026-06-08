@@ -13,6 +13,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"net/url"
@@ -22,35 +23,52 @@ import (
 	"github.com/google/go-querystring/query"
 )
 
+type MpRequester interface {
+	Query(d interface{}) MpRequester
+	SendData(d interface{}) MpRequester
+	Bind(d interface{}) MpRequester
+	NoAccessToken() MpRequester
+	Download(ctx context.Context) (resp *http.Response, err error)
+	Do(ctx context.Context) (err error)
+	Upload(ctx context.Context, reader io.Reader, fileExtension string) (err error)
+}
+
 // Api请求数据体
 type mpReq struct {
-	account  MpAccount
+	account  *MpAccount
 	path     mp_api.MpApi
 	param    interface{}
 	sendData interface{}
 	res      interface{}
 	err      error
+	noAT     bool
 }
 
 // Query 填充查询信息
 // access_token 会自动填充，无需指定
-func (mp *mpReq) Query(d interface{}) *mpReq {
+func (mp *mpReq) Query(d interface{}) MpRequester {
 	mp.param = d
 	return mp
 }
 
 // SendData 填充POST里的Body数据
-func (mp *mpReq) SendData(d interface{}) *mpReq {
+func (mp *mpReq) SendData(d interface{}) MpRequester {
 	mp.sendData = d
 	return mp
 }
 
 // Bind 绑定请求结果的解码数据体
-func (mp *mpReq) Bind(d interface{}) *mpReq {
+func (mp *mpReq) Bind(d interface{}) MpRequester {
 	if reflect.ValueOf(d).Kind() != reflect.Ptr {
 		mp.err = errors.New("mp.Bind must be Ptr")
 	}
 	mp.res = d
+	return mp
+}
+
+// NoAccessToken 无token
+func (mp *mpReq) NoAccessToken() MpRequester {
+	mp.noAT = true
 	return mp
 }
 
@@ -67,6 +85,12 @@ func (mp *mpReq) Download(ctx context.Context) (resp *http.Response, err error) 
 		return
 	}
 
+	if !mp.noAT {
+		if err = mp.account.TokenGuard(ctx); err != nil {
+			return
+		}
+	}
+	log.Println(">>> Download", !v.Has("access_token"), mp.account.AccessToken, mp.account.ExpireAt)
 	if !v.Has("access_token") && mp.account.AccessToken != "" {
 		v.Set("access_token", mp.account.AccessToken)
 	}
@@ -99,6 +123,12 @@ func (mp *mpReq) Do(ctx context.Context) (err error) {
 		return mp.err
 	}
 
+	if !mp.noAT {
+		if err = mp.account.TokenGuard(ctx); err != nil {
+			return
+		}
+	}
+
 	var v url.Values
 	v, err = query.Values(mp.param)
 	if err != nil {
@@ -123,6 +153,9 @@ func (mp *mpReq) Do(ctx context.Context) (err error) {
 			return
 		}
 		req, err = http.NewRequest(http.MethodPost, apiUrl, buf)
+		if err != nil {
+			return
+		}
 		req.Header.Set("Content-Type", "application/json")
 	}
 	if err != nil {
@@ -166,6 +199,12 @@ func (mp *mpReq) Do(ctx context.Context) (err error) {
 func (mp *mpReq) Upload(ctx context.Context, reader io.Reader, fileExtension string) (err error) {
 	if mp.err != nil {
 		return mp.err
+	}
+
+	if !mp.noAT {
+		if err = mp.account.TokenGuard(ctx); err != nil {
+			return
+		}
 	}
 
 	var v url.Values

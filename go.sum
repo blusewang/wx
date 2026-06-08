@@ -1,4 +1,9 @@
+github.com/google/go-cmp v0.6.0/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
 github.com/google/go-querystring v1.0.0 h1:Xkwi/a1rcvNg1PPYe5vI8GbeBY/jrVuDX5ASuANWTrk=
 github.com/google/go-querystring v1.0.0/go.mod h1:odCYkC5MyYFN7vkCjXpyrEuKhc/BUO6wN/zVPAxq5ck=
+github.com/google/go-querystring v1.2.0 h1:yhqkPbu2/OH+V9BfpCVPZkNmUXhb2gBxJArfhIxNtP0=
+github.com/google/go-querystring v1.2.0/go.mod h1:8IFJqpSRITyJ8QhQ13bmbeMBDfmeEJZD5A0egEOmkqU=
 github.com/youkale/go-querystruct v0.0.0-20190423034802-cb0a446556d0 h1:lpFv7OR11GFdg/Q+5jcsHFJBH38Hg0K0Vi8CbyV9gyo=
 github.com/youkale/go-querystruct v0.0.0-20190423034802-cb0a446556d0/go.mod h1:xNATC2kLfAGWFTDkrBVOnW+DFjrgXrbqMtcID37lFZY=
+github.com/youkale/go-querystruct v1.0.0 h1:26xJ3FExWO/zZDnPvbKd5Vc3Rct0aRB9Pzn9Opt1QZY=
+github.com/youkale/go-querystruct v1.0.0/go.mod h1:xNATC2kLfAGWFTDkrBVOnW+DFjrgXrbqMtcID37lFZY=

@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-type H map[string]interface{}
+type H map[string]any
 
 const letterBytes = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
