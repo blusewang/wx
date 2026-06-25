@@ -13,7 +13,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"mime/multipart"
 	"net/http"
 	"net/url"
@@ -90,7 +89,6 @@ func (mp *mpReq) Download(ctx context.Context) (resp *http.Response, err error) 
 			return
 		}
 	}
-	log.Println(">>> Download", !v.Has("access_token"), mp.account.AccessToken, mp.account.ExpireAt)
 	if !v.Has("access_token") && mp.account.AccessToken != "" {
 		v.Set("access_token", mp.account.AccessToken)
 	}

@@ -13,6 +13,8 @@ import (
 	"github.com/youkale/go-querystruct/params"
 )
 
+type TokenGuardFun func(ctx context.Context) (err error)
+
 // MpAccount 应用账号
 // ServerHost 默认为：mp_api.ServerHostUniversal
 type MpAccount struct {
@@ -25,7 +27,11 @@ type MpAccount struct {
 	EncodingAESKey  string            `json:"encoding_aes_key"`
 	JsSdkTicket     string            `json:"js_sdk_ticket"`
 	ServerHost      mp_api.ServerHost `json:"server_host"`
-	TokenGuard      func(ctx context.Context) (err error)
+	TokenGuard      TokenGuardFun
+}
+
+func (it *MpAccount) SetTokenGuard(fun TokenGuardFun) {
+	it.TokenGuard = fun
 }
 
 // ReadMessage 读取通知消息
