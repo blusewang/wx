@@ -23,10 +23,12 @@ import (
 	"github.com/blusewang/wx/mch_api_v3"
 )
 
-var (
-	// wechatPayCerts 微信支付官方证书缓存
-	wechatPayCerts = NewPayCerManager()
-)
+type IMchV3Requester interface {
+	Send(data interface{}) IMchV3Requester
+	Bind(data interface{}) IMchV3Requester
+	Do(ctx context.Context, method string) (err error)
+	Upload(ctx context.Context, fileName string, raw []byte) (err error)
+}
 
 // 商户请求
 type mchReqV3 struct {
@@ -38,20 +40,23 @@ type mchReqV3 struct {
 }
 
 // Send 填充POST里的Body数据
-func (mr *mchReqV3) Send(data interface{}) *mchReqV3 {
+func (mr *mchReqV3) Send(data interface{}) IMchV3Requester {
 	mr.sendData = data
 	return mr
 }
 
 // Bind 绑定请求结果的解码数据体
-func (mr *mchReqV3) Bind(data interface{}) *mchReqV3 {
+func (mr *mchReqV3) Bind(data interface{}) IMchV3Requester {
 	mr.res = data
 	return mr
 }
 
 // Do 执行
 func (mr *mchReqV3) Do(ctx context.Context, method string) (err error) {
-	if wechatPayCerts.IsEmpty() {
+	if mr.err != nil {
+		return mr.err
+	}
+	if len(mr.account.platformCert) == 0 && mr.api != "certificates" {
 		if err = mr.account.DownloadV3Cert(ctx); err != nil {
 			return
 		}
@@ -105,8 +110,11 @@ func (mr *mchReqV3) Do(ctx context.Context, method string) (err error) {
 
 // Upload 上传图片视频
 func (mr *mchReqV3) Upload(ctx context.Context, fileName string, raw []byte) (err error) {
+	if mr.err != nil {
+		return mr.err
+	}
 	// 准备证书
-	if wechatPayCerts.IsEmpty() {
+	if len(mr.account.platformCert) == 0 {
 		if err = mr.account.DownloadV3Cert(ctx); err != nil {
 			return
 		}
@@ -152,10 +160,10 @@ func (mr *mchReqV3) Upload(ctx context.Context, fileName string, raw []byte) (er
 	req.Header.Set("Content-Type", "multipart/form-data")
 	// 网络操作
 	resp, err := client(ctx).Do(req)
-	defer resp.Body.Close()
 	if err != nil {
 		return
 	}
+	defer resp.Body.Close()
 
 	// 处理结果
 	raw, err = io.ReadAll(resp.Body)
@@ -173,17 +181,27 @@ func (mr *mchReqV3) Upload(ctx context.Context, fileName string, raw []byte) (er
 	}
 	if resp.StatusCode == http.StatusOK {
 		return json.Unmarshal(raw, &mr.res)
-	} else {
-		return
 	}
+	return
 }
 
 func (mr *mchReqV3) sign(request *http.Request, body []byte) (err error) {
-	request.Header.Set("User-Agent", "Guandb/1.0")
+	if mr.err != nil {
+		return mr.err
+	}
+	request.Header.Set("User-Agent", "Mozilla/5.0 Guandb/1.0 (SDK)")
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Accept", "application/json")
-	if !wechatPayCerts.IsEmpty() {
-		request.Header.Set("Wechatpay-Serial", wechatPayCerts.GetSerialNo())
+	if len(mr.account.platformCert) > 0 {
+		cert, err := mr.account.GetCertificate(request.Context())
+		if err != nil {
+			return err
+		}
+		if cert == nil {
+			log.Println("client have certificate, but no available platform certificate. can't sign")
+		} else {
+			request.Header.Set("Wechatpay-Serial", fmt.Sprintf("%X", cert.SerialNumber))
+		}
 	}
 	if body == nil {
 		body = make([]byte, 0)

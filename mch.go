@@ -37,54 +37,56 @@ type MchAccount struct {
 	MchId          string
 	MchKeyV2       string
 	MchKeyV3       string
-	certTls        tls.Certificate   // 我的证书 tls版 用于传输
-	certX509       *x509.Certificate // 我的证书 x509版 用于辅助加解密
-	privateKey     *rsa.PrivateKey   // 我的Key
-	publicKeyWxPay *rsa.PublicKey    // 加密银行卡信息时用的微信支付的公钥
+	certTls        tls.Certificate              // 我的证书 tls版 用于传输
+	certX509       *x509.Certificate            // 我的证书 x509版 用于辅助加解密
+	privateKey     *rsa.PrivateKey              // 我的Key
+	publicKeyWxPay *rsa.PublicKey               // 加密银行卡信息时用的微信支付的公钥
+	platformCert   map[string]*x509.Certificate // 平台证书缓存
+	Err            error
+	lastUpdateTime time.Time
 }
 
 // NewMchAccount 实例化商户账号
-func NewMchAccount(mchid, key2, key3 string, cert, key, pubKey []byte) (ma *MchAccount, err error) {
+func NewMchAccount(ctx context.Context, mchId string, key2 *string, key3 string, cert, key, pubKey []byte, platformCerts [][]byte) (ma *MchAccount) {
 	ma = &MchAccount{
-		MchId:    mchid,
-		MchKeyV2: key2,
-		MchKeyV3: key3,
+		MchId:        mchId,
+		MchKeyV3:     key3,
+		platformCert: make(map[string]*x509.Certificate),
 	}
-	cb, _ := pem.Decode(cert)
-	if ma.certX509, err = x509.ParseCertificate(cb.Bytes); err != nil {
+	if key2 != nil {
+		ma.MchKeyV2 = *key2
+	}
+	if ma.certX509, ma.Err = x509.ParseCertificate(cert); ma.Err != nil {
+		log.Println(ma.Err)
 		return
 	}
-	ma.certTls, err = tls.X509KeyPair(cert, key)
-	if err != nil {
+	var o any
+	o, ma.Err = x509.ParsePKCS8PrivateKey(key)
+	if ma.Err != nil {
 		return
 	}
-	cb, _ = pem.Decode(key)
-	if cb.Type == "RSA PRIVATE KEY" {
-		ma.privateKey, err = x509.ParsePKCS1PrivateKey(cb.Bytes)
+	ma.privateKey = o.(*rsa.PrivateKey)
+	ma.certTls.Certificate = [][]byte{cert}
+	ma.certTls.PrivateKey = key
+	ma.publicKeyWxPay, ma.Err = x509.ParsePKCS1PublicKey(pubKey)
+	for i := range platformCerts {
+		_c, err := x509.ParseCertificate(platformCerts[i])
 		if err != nil {
 			return
 		}
-	} else if cb.Type == "PRIVATE KEY" {
-		o, err := x509.ParsePKCS8PrivateKey(cb.Bytes)
-		if err != nil {
-			return nil, err
-		}
-		ma.privateKey = o.(*rsa.PrivateKey)
+		ma.platformCert[fmt.Sprintf("%X", _c.SerialNumber)] = _c
 	}
-	if pubKey != nil {
-		cb, _ = pem.Decode(pubKey)
-		ma.publicKeyWxPay, err = x509.ParsePKCS1PublicKey(cb.Bytes)
-	}
+	ma.Err = ma.DownloadV3Cert(ctx)
 	return
 }
 
 // NewMchReqWithApp 创建请求
-func (ma MchAccount) NewMchReqWithApp(api mch_api.MchApi, appId string) (req *mchReq) {
-	return &mchReq{account: ma, api: api, appId: appId}
+func (ma MchAccount) NewMchReqWithApp(api mch_api.MchApi, appId string) IMchRequester {
+	return new(mchReq{account: ma, api: api, appId: appId})
 }
 
 // NewMchReq 创建请求
-func (ma MchAccount) NewMchReq(api mch_api.MchApi) (req *mchReq) {
+func (ma MchAccount) NewMchReq(api mch_api.MchApi) IMchRequester {
 	return &mchReq{account: ma, api: api}
 }
 
@@ -231,38 +233,40 @@ func (ma MchAccount) newPrivateClient(ctx context.Context) (cli *http.Client, er
 }
 
 // NewMchReqV3 创建请求
-func (ma MchAccount) NewMchReqV3(api mch_api_v3.MchApiV3) (req *mchReqV3) {
-	req = &mchReqV3{account: ma, api: api}
-	return
+func (ma MchAccount) NewMchReqV3(api mch_api_v3.MchApiV3) IMchV3Requester {
+	return new(mchReqV3{account: ma, api: api})
 }
 
 // GetCertificate 获取证书
 func (ma MchAccount) GetCertificate(ctx context.Context) (cert *x509.Certificate, err error) {
-	if wechatPayCerts.IsEmpty() {
+	if len(ma.platformCert) == 0 || ma.lastUpdateTime.Add(1*time.Hour).Before(time.Now()) {
 		if err = ma.DownloadV3Cert(ctx); err != nil {
 			return
 		}
 	}
-	return wechatPayCerts.GetCert(), nil
+	for s := range ma.platformCert {
+		if ma.platformCert[s].NotAfter.Before(time.Now().AddDate(0, 0, -1)) {
+			delete(ma.platformCert, s)
+		} else if cert == nil {
+			cert = ma.platformCert[s]
+		} else {
+			if ma.platformCert[s].NotAfter.After(cert.NotAfter) {
+				cert = ma.platformCert[s]
+			}
+		}
+	}
+	return
 }
 
 // DownloadV3Cert 获取微信支付官方证书
 func (ma MchAccount) DownloadV3Cert(ctx context.Context) (err error) {
-	if wechatPayCerts.IsEmpty() {
-		wechatPayCerts.Add(PayCert{
-			SerialNo:      "",
-			EffectiveTime: time.Now(),
-			ExpireTime:    time.Now(),
-			cert:          nil,
-		})
-	}
 	var res mch_api_v3.OtherCertificatesResp
 	err = ma.NewMchReqV3(mch_api_v3.OtherCertificates).Bind(&res).Do(ctx, http.MethodGet)
 	if err != nil {
 		return
 	}
-	for _, c := range res.Data {
-		ct, err := ma.DecryptAES256GCM(c.EncryptCertificate.Nonce, c.EncryptCertificate.AssociatedData, c.EncryptCertificate.Ciphertext)
+	for _, item := range res.Data {
+		ct, err := ma.DecryptAES256GCM(item.EncryptCertificate.Nonce, item.EncryptCertificate.AssociatedData, item.EncryptCertificate.Ciphertext)
 		if err != nil {
 			return err
 		}
@@ -271,12 +275,8 @@ func (ma MchAccount) DownloadV3Cert(ctx context.Context) (err error) {
 		if err != nil {
 			return err
 		}
-		wechatPayCerts.Add(PayCert{
-			SerialNo:      c.SerialNo,
-			EffectiveTime: c.EffectiveTime,
-			ExpireTime:    c.ExpireTime,
-			cert:          cert,
-		})
+		ma.platformCert[fmt.Sprintf("%X", cert.SerialNumber)] = cert
+		ma.lastUpdateTime = time.Now()
 	}
 	return
 }
@@ -295,12 +295,12 @@ func (ma MchAccount) SignBaseV3(message string) (sign string, err error) {
 
 // VerifyV3 验签
 func (ma MchAccount) VerifyV3(ctx context.Context, header http.Header, body []byte) (err error) {
-	if wechatPayCerts.IsEmpty() {
+	if len(ma.platformCert) == 0 {
 		if err = ma.DownloadV3Cert(ctx); err != nil {
 			return
 		}
 	}
-	cert := wechatPayCerts.GetCertBySerialNo(header.Get("Wechatpay-Serial"))
+	cert := ma.platformCert[header.Get("Wechatpay-Serial")]
 	if cert == nil {
 		log.Println("未能在缓存中匹配到对方ID的证书", header.Get("Wechatpay-Serial"))
 		return nil
@@ -349,6 +349,13 @@ func (ma MchAccount) SignAppV3(appId, prepayId string) (out H, err error) {
 		"noncestr":  nonce,
 		"timestamp": ts,
 		"sign":      s,
+	}
+	return
+}
+
+func (ma MchAccount) PlatformCertificates() (certs []*x509.Certificate) {
+	for s := range ma.platformCert {
+		certs = append(certs, ma.platformCert[s])
 	}
 	return
 }

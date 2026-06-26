@@ -19,6 +19,14 @@ import (
 	"github.com/blusewang/wx/mch_api"
 )
 
+type IMchRequester interface {
+	Send(data interface{}) IMchRequester
+	UseHMacSign() IMchRequester
+	UsePrivateCert() IMchRequester
+	Bind(data interface{}) IMchRequester
+	Do(ctx context.Context) (err error)
+}
+
 // 商户请求
 type mchReq struct {
 	account MchAccount
@@ -33,32 +41,35 @@ type mchReq struct {
 }
 
 // Send 填充POST里的Body数据
-func (mr *mchReq) Send(data interface{}) *mchReq {
+func (mr *mchReq) Send(data interface{}) IMchRequester {
 	mr.sendData = data
 	return mr
 }
 
 // UseHMacSign 使用 HMAC-SHA256 签名
 // 默认采用 MD5 签名
-func (mr *mchReq) UseHMacSign() *mchReq {
+func (mr *mchReq) UseHMacSign() IMchRequester {
 	mr.isHmacSign = true
 	return mr
 }
 
 // UsePrivateCert 使用私有证书通信
-func (mr *mchReq) UsePrivateCert() *mchReq {
+func (mr *mchReq) UsePrivateCert() IMchRequester {
 	mr.isPrivateClient = true
 	return mr
 }
 
 // Bind 绑定请求结果的解码数据体
-func (mr *mchReq) Bind(data interface{}) *mchReq {
+func (mr *mchReq) Bind(data interface{}) IMchRequester {
 	mr.res = data
 	return mr
 }
 
 // Do 执行
 func (mr *mchReq) Do(ctx context.Context) (err error) {
+	if mr.err != nil {
+		return mr.err
+	}
 	if err = mr.sign(); err != nil {
 		return
 	}
